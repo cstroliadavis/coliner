@@ -1,0 +1,75 @@
+name: my-cli
+version: 1.0.0
+description: A command line tool configured via YAML with smart parameter parsing and event triggers
+
+commands:
+  - name: some-command
+    description: Demonstrates priority of named parameters and sequential positional assignment
+    isDefault: true
+    triggers: some-command-event
+    params:
+      - name: param-1
+        description: First parameter assigned positionally if unnamed
+        type: text
+      - name: param-2
+        description: Second parameter with alias -a
+        alias: a
+        type: text
+      - name: param-3
+        description: Third parameter assigned positionally
+        type: text
+      - name: param-4
+        description: Fourth parameter expecting a number
+        type: number
+      - name: param-5
+        description: Fifth parameter expecting a boolean flag
+        type: flag
+      - name: param-6
+        description: Sixth parameter assigned positionally
+        type: text
+      - name: some-param
+        description: Parameter targeted by --some-param
+        type: text
+
+  - name: user-add
+    description: Add a new user to the system
+    triggers: user-added
+    params:
+      - name: username
+        description: The username for the new account
+        type: text
+      - name: email
+        description: User email address
+        alias: e
+        type: text
+      - name: age
+        description: User age
+        type: number
+        default: 18
+      - name: role
+        description: User system role
+        type: keyword
+        default: member
+      - name: active
+        description: Whether the user account is active
+        type: flag
+        negator: true
+        default: true
+      - name: birth-date
+        description: Date of birth
+        type: date
+
+  - name: fetch-data
+    description: Fetch remote data or read from file or stdin
+    triggers: data-fetched
+    params:
+      - name: source-url
+        description: Target HTTP endpoint
+        type: url
+      - name: input-file
+        description: Local file input path
+        alias: f
+        type: file
+      - name: input-stream
+        description: Piped standard input stream
+        type: stdin

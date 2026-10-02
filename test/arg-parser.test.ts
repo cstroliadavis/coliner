@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'bun:test';
 import { createArgParser } from '../src/arg-parser.js';
 import type { CommandConfig } from '../src/types.js';
 
@@ -12,7 +12,7 @@ describe('arg-parser', () => {
   };
 
   afterEach(() => {
-    vi.clearAllMocks();
+    // Teardown per unit-test-setup
   });
 
   it('parses the user example correctly prioritizing named arguments over positionals', () => {

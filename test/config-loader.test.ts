@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'bun:test';
 import { createConfigLoader } from '../src/config-loader.js';
 
 describe('config-loader', () => {
@@ -11,7 +11,7 @@ describe('config-loader', () => {
   };
 
   afterEach(() => {
-    vi.clearAllMocks();
+    // Teardown per unit-test-setup
   });
 
   it('parses valid YAML configuration with commands and parameters', () => {

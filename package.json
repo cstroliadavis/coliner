@@ -1,21 +1,24 @@
 {
   "name": "coliner",
   "version": "0.1.0",
-  "description": "YAML/JSON-driven command line tool builder with event triggering and smart positional assignment",
+  "description": "YAML/JSON-driven command line tool builder with event triggering and smart positional assignment, running on Bun",
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "types": "./src/index.ts",
   "bin": {
-    "coliner": "./bin/coliner.js"
+    "coliner": "./bin/coliner.ts"
   },
   "scripts": {
     "build": "tsc",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "start": "bun run ./bin/coliner.ts",
+    "test": "bun test",
+    "test:watch": "bun test --watch"
   },
   "keywords": [
     "cli",
+    "bun",
     "yaml",
     "command-line",
     "parser",
@@ -25,12 +28,10 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "yaml": "^2.9.1"
+    "yaml": "^2.7.0"
   },
   "devDependencies": {
-    "@types/node": "^26.6.4",
-    "tsx": "^4.23.15",
-    "typescript": "^7.0.2",
-    "vitest": "^5.0.3"
+    "@types/bun": "^1.2.4",
+    "typescript": "^5.8.2"
   }
 }

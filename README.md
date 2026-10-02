@@ -1,12 +1,14 @@
 # Coliner
 
-A declarative, YAML/JSON-driven command line tool builder with event triggers, strict type coercion,
-and smart named-first positional argument assignment.
+A declarative, YAML/JSON-driven command line tool builder for **Bun** with event triggers, strict
+type coercion, and smart named-first positional argument assignment.
 
 ## Features
 
-- **Declarative YAML/JSON Schema**: Define your commands, parameters, aliases, types, and events in
-  a clear configuration file.
+- **Built for Bun**: Native execution of TypeScript CLI files and fast test execution via `bun test`
+  without requiring a compile step.
+- **Declarative YAML/JSON Schema**: Define commands, parameters, aliases, types, and events in a
+  clear configuration file.
 - **Priority-Based Argument Resolution**: Named flags/options (`--param=val`, `-a val`) are parsed
   first, followed by assigning remaining positional tokens to unfilled parameters in order of
   definition.
@@ -62,7 +64,8 @@ Given a command with parameters `param-1`, `param-2` (alias `-a`), `param-3`, `p
 `param-6`, and `some-param`:
 
 ```bash
-coliner some-command "My first Param is assigned to the first parameter" \
+bun run ./bin/coliner.ts --config example/cli.yaml some-command \
+  "My first Param is assigned to the first parameter" \
   --some-param="assigned to some-param" \
   -a "assigned to the command with alias a" \
   "Assuming that the param with alias a was the second param, this value will be assigned to the 3rd param" \
@@ -90,7 +93,7 @@ Resulting parameters payload:
 import { createColiner } from "coliner";
 
 const cli = createColiner({
-  config: "cli.yaml",
+  config: "example/cli.yaml",
 });
 
 cli.on("user-created", async ({ params, rawArgs, triggers }) => {
@@ -101,15 +104,18 @@ cli.on("user-created", async ({ params, rawArgs, triggers }) => {
 await cli.execute();
 ```
 
-## CLI Usage
+## Running with Bun
 
 ```bash
+# Run tests
+bun test
+
 # Display help
-coliner --config cli.yaml --help
+bun run ./bin/coliner.ts --config example/cli.yaml --help
 
 # Display command-specific help
-coliner --config cli.yaml help user-add
+bun run ./bin/coliner.ts --config example/cli.yaml help user-add
 
-# Run a command
-coliner --config cli.yaml user-add alice -e alice@example.com --no-active
+# Execute a command
+bun run ./bin/coliner.ts --config example/cli.yaml user-add alice -e alice@example.com --no-active
 ```

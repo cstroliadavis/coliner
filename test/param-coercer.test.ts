@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'bun:test';
 import { createParamCoercer } from '../src/param-coercer.js';
 
 describe('param-coercer', () => {
@@ -23,7 +23,6 @@ describe('param-coercer', () => {
   };
 
   afterEach(() => {
-    vi.clearAllMocks();
     const tempDir = path.resolve(process.cwd(), 'scratch-test');
     if (fs.existsSync(tempDir)) {
       fs.rmSync(tempDir, { force: true, recursive: true });

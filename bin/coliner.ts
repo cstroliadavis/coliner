@@ -1,14 +1,19 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 
 import process from 'node:process';
-import { createColiner } from '../dist/index.js';
+import { createColiner } from '../src/index.js';
+
+interface ParsedCliOptions {
+  cleanArgs: string[];
+  configPath?: string;
+}
 
 /**
  * Extracts CLI-level configuration options such as --config or -c.
  */
-function extractCliOptions(argv) {
-  let configPath;
-  const cleanArgs = [];
+function extractCliOptions(argv: string[]): ParsedCliOptions {
+  let configPath: string | undefined;
+  const cleanArgs: string[] = [];
 
   let i = 0;
   while (i < argv.length) {
@@ -34,9 +39,9 @@ function extractCliOptions(argv) {
 }
 
 /**
- * Main command line execution runner.
+ * Main command line execution runner for the Bun runtime.
  */
-async function run() {
+async function run(): Promise<void> {
   const { cleanArgs, configPath } = extractCliOptions(process.argv.slice(2));
 
   try {
@@ -56,7 +61,7 @@ async function run() {
 
     await cli.execute(cleanArgs);
   } catch (error) {
-    console.error(`Error: ${error.message}`);
+    console.error(`Error: ${(error as Error).message}`);
     process.exit(1);
   }
 }

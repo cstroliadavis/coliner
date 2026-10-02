@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, mock } from 'bun:test';
 import { createColiner } from '../src/coliner.js';
 import type { CliConfig } from '../src/types.js';
 
@@ -40,12 +40,12 @@ describe('coliner', () => {
   };
 
   afterEach(() => {
-    vi.clearAllMocks();
+    // Teardown per unit-test-setup
   });
 
   it('triggers registered event listeners with parsed parameters', async () => {
     const { cli } = setup();
-    const handler = vi.fn();
+    const handler = mock();
 
     cli.on('deploy-triggered', handler);
 
@@ -67,7 +67,7 @@ describe('coliner', () => {
 
   it('uses default command when no command name is specified', async () => {
     const { cli } = setup();
-    const handler = vi.fn();
+    const handler = mock();
 
     cli.on('deploy-triggered', handler);
 

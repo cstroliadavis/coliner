@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { coerceTime } from './time-coercer.js';
 import type { ParamConfig, ParamItems } from './types.js';
 
 /**
@@ -257,6 +258,7 @@ const TYPE_COERCERS: Record<string, CoercerFn | undefined> = {
   number: (ctx) => coerceNumber(ctx.rawValue, ctx.param.name),
   select: (ctx) => coerceSelect(ctx.rawValue, ctx.param),
   stdin: (ctx) => coerceStdin(ctx.rawValue, ctx.stdinContent),
+  time: (ctx) => coerceTime(ctx.rawValue, ctx.param.name),
   url: (ctx) => coerceUrl(ctx.rawValue, ctx.param.name),
 };
 

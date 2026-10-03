@@ -105,4 +105,21 @@ commands:
 
     expect(() => loader.parseConfigString(invalidYaml)).toThrow(/invalid type/);
   });
+
+  it('accepts time as a valid parameter type', () => {
+    const { loader } = setup();
+
+    const validYaml = `
+commands:
+  - name: log-time
+    triggers: time-logged
+    params:
+      - name: start
+        type: time
+`;
+
+    const config = loader.parseConfigString(validYaml);
+
+    expect(config.commands[0]?.params?.[0]?.type).toBe('time');
+  });
 });

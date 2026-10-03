@@ -135,4 +135,34 @@ describe('param-coercer', () => {
     expect(coercer.coerce(param, 'orange')).toBe('orange');
     expect(coercer.coerce(param, 'apple')).toBe('apple');
   });
+
+  it('coerces and validates 24-hour time parameters', () => {
+    const { coercer } = setup();
+    const param = { name: 'start', type: 'time' as const };
+
+    expect(coercer.coerce(param, '5:30')).toBe('05:30');
+    expect(coercer.coerce(param, '05:30')).toBe('05:30');
+    expect(coercer.coerce(param, '14:45')).toBe('14:45');
+    expect(coercer.coerce(param, '0:00')).toBe('00:00');
+  });
+
+  it('coerces and validates 12-hour am/pm time parameters', () => {
+    const { coercer } = setup();
+    const param = { name: 'start', type: 'time' as const };
+
+    expect(coercer.coerce(param, '5:30pm')).toBe('17:30');
+    expect(coercer.coerce(param, '5:30 pm')).toBe('17:30');
+    expect(coercer.coerce(param, '12:15am')).toBe('00:15');
+    expect(coercer.coerce(param, '12:00pm')).toBe('12:00');
+  });
+
+  it('rejects invalid time parameters with TypeError', () => {
+    const { coercer } = setup();
+    const param = { name: 'start', type: 'time' as const };
+
+    expect(() => coercer.coerce(param, 'invalid-time')).toThrow(TypeError);
+    expect(() => coercer.coerce(param, '25:00')).toThrow(TypeError);
+    expect(() => coercer.coerce(param, '12:60')).toThrow(TypeError);
+    expect(() => coercer.coerce(param, '13:00pm')).toThrow(TypeError);
+  });
 });

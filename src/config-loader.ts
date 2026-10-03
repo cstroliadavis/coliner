@@ -13,6 +13,7 @@ const VALID_PARAM_TYPES: ParamType[] = [
   'select',
   'stdin',
   'text',
+  'time',
   'url',
 ];
 

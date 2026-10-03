@@ -2,7 +2,7 @@
  * Supported data types for command parameter parsing and validation.
  */
 export type ParamType =
-  'date' | 'file' | 'flag' | 'keyword' | 'number' | 'select' | 'stdin' | 'text' | 'url';
+  'date' | 'file' | 'flag' | 'keyword' | 'number' | 'select' | 'stdin' | 'text' | 'time' | 'url';
 
 /**
  * Supported shell environments for tab-completion script generation.

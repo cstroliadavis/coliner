@@ -6,11 +6,13 @@ import { createParamCoercer } from '../src/param-coercer.js';
 describe('param-coercer', () => {
   const setup = () => {
     const tempDir = path.resolve(process.cwd(), 'scratch-test');
+
     if (!fs.existsSync(tempDir)) {
       fs.mkdirSync(tempDir, { recursive: true });
     }
 
     const testFile = path.resolve(tempDir, 'sample.txt');
+
     fs.writeFileSync(testFile, 'hello file content');
 
     const coercer = createParamCoercer(tempDir);
@@ -24,6 +26,7 @@ describe('param-coercer', () => {
 
   afterEach(() => {
     const tempDir = path.resolve(process.cwd(), 'scratch-test');
+
     if (fs.existsSync(tempDir)) {
       fs.rmSync(tempDir, { force: true, recursive: true });
     }
@@ -34,19 +37,18 @@ describe('param-coercer', () => {
 
     expect(coercer.coerce({ name: 'count', type: 'number' }, '42')).toBe(42);
     expect(coercer.coerce({ name: 'rate', type: 'number' }, '3.14')).toBe(3.14);
-    expect(() => coercer.coerce({ name: 'invalid', type: 'number' }, 'abc')).toThrow(
-      TypeError
-    );
+    expect(() => coercer.coerce({ name: 'invalid', type: 'number' }, 'abc')).toThrow(TypeError);
   });
 
   it('coerces and validates date parameters', () => {
     const { coercer } = setup();
 
     const date = coercer.coerce({ name: 'created', type: 'date' }, '2026-10-02') as Date;
+
     expect(date).toBeInstanceOf(Date);
     expect(date.getFullYear()).toBe(2026);
     expect(() => coercer.coerce({ name: 'invalid', type: 'date' }, 'not-a-date')).toThrow(
-      TypeError
+      TypeError,
     );
   });
 
@@ -57,33 +59,27 @@ describe('param-coercer', () => {
     expect(coercer.coerce({ name: 'verbose', type: 'flag' }, 'yes')).toBe(true);
     expect(coercer.coerce({ name: 'verbose', type: 'flag' }, 'false')).toBe(false);
     expect(coercer.coerce({ name: 'verbose', type: 'flag' }, undefined)).toBe(false);
-    expect(() => coercer.coerce({ name: 'verbose', type: 'flag' }, 'maybe')).toThrow(
-      TypeError
-    );
+    expect(() => coercer.coerce({ name: 'verbose', type: 'flag' }, 'maybe')).toThrow(TypeError);
   });
 
   it('coerces and validates url parameters', () => {
     const { coercer } = setup();
 
-    const url = coercer.coerce(
-      { name: 'endpoint', type: 'url' },
-      'https://example.com/api'
-    ) as URL;
+    const url = coercer.coerce({ name: 'endpoint', type: 'url' }, 'https://example.com/api') as URL;
+
     expect(url).toBeInstanceOf(URL);
     expect(url.hostname).toBe('example.com');
     expect(() => coercer.coerce({ name: 'invalid', type: 'url' }, 'invalid-url')).toThrow(
-      TypeError
+      TypeError,
     );
   });
 
   it('coerces and validates keyword parameters', () => {
     const { coercer } = setup();
 
-    expect(coercer.coerce({ name: 'action', type: 'keyword' }, 'deploy-app')).toBe(
-      'deploy-app'
-    );
+    expect(coercer.coerce({ name: 'action', type: 'keyword' }, 'deploy-app')).toBe('deploy-app');
     expect(() =>
-      coercer.coerce({ name: 'action', type: 'keyword' }, 'hello world with spaces')
+      coercer.coerce({ name: 'action', type: 'keyword' }, 'hello world with spaces'),
     ).toThrow(TypeError);
   });
 
@@ -91,20 +87,38 @@ describe('param-coercer', () => {
     const { coercer, testFile } = setup();
 
     const resolved = coercer.coerce({ name: 'input', type: 'file' }, 'sample.txt');
+
     expect(resolved).toBe(testFile);
     expect(() =>
-      coercer.coerce({ name: 'input', type: 'file' }, 'non-existent-file.xyz')
+      coercer.coerce({ name: 'input', type: 'file' }, 'non-existent-file.xyz'),
     ).toThrow();
   });
 
   it('resolves stdin input when provided', () => {
     const { coercer } = setup();
 
-    const result = coercer.coerce(
-      { name: 'piped', type: 'stdin' },
-      '-',
-      { stdinContent: 'stream data' }
-    );
+    const result = coercer.coerce({ name: 'piped', type: 'stdin' }, '-', {
+      stdinContent: 'stream data',
+    });
+
     expect(result).toBe('stream data');
+  });
+
+  it('coerces and validates select parameters with string options', () => {
+    const { coercer } = setup();
+    const param = { items: ['staging', 'production'], name: 'env', type: 'select' as const };
+
+    expect(coercer.coerce(param, 'staging')).toBe('staging');
+    expect(coercer.coerce(param, 'production')).toBe('production');
+    expect(() => coercer.coerce(param, 'local')).toThrow(TypeError);
+  });
+
+  it('coerces and validates select parameters with numeric options', () => {
+    const { coercer } = setup();
+    const param = { items: [1, 2, 3], name: 'level', type: 'select' as const };
+
+    expect(coercer.coerce(param, '2')).toBe(2);
+    expect(coercer.coerce(param, 3)).toBe(3);
+    expect(() => coercer.coerce(param, '5')).toThrow(TypeError);
   });
 });

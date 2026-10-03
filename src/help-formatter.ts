@@ -1,33 +1,96 @@
 import type { CliConfig, CommandConfig, ParamConfig } from './types.js';
 
 /**
- * Builds the flag/alias signature for a parameter (e.g. -a, --alias <text>).
+ * Formats a single or multi-character alias token with hyphens.
  */
-function formatParamSignature(param: ParamConfig): string {
-  const parts: string[] = [];
-  const aliases = Array.isArray(param.alias)
-    ? param.alias
-    : param.alias
-      ? [param.alias]
-      : [];
+function formatAliasFlag(alias: string): string {
+  if (alias.length === 1) return `-${alias}`;
 
-  for (const alias of aliases) {
-    if (alias.length === 1) {
-      parts.push(`-${alias}`);
-    } else {
-      parts.push(`--${alias}`);
-    }
+  return `--${alias}`;
+}
+
+/**
+ * Formats CLI program name and version banner string.
+ */
+function formatCliTitle(name?: string, version?: string): string {
+  const cliName = name || 'coliner';
+  const ver = version ? ` v${version}` : '';
+
+  return `${cliName}${ver}`;
+}
+
+/**
+ * Builds the header lines for command-specific help documentation.
+ */
+function formatCommandHeader(command: CommandConfig, cliName: string): string[] {
+  const desc = command.description ? ` - ${command.description}` : '';
+
+  return [
+    `Command: ${command.name}${desc}`,
+    `Triggers: '${command.triggers}'`,
+    '',
+    `Usage: ${cliName} ${command.name} [options] [arguments]`,
+  ];
+}
+
+/**
+ * Generates formatted help documentation for a specific command.
+ */
+function formatCommandHelp(command: CommandConfig, cliName: string): string {
+  const header = formatCommandHeader(command, cliName);
+  const paramSection = formatCommandParams(command.params);
+
+  return [...header, ...paramSection].join('\n');
+}
+
+/**
+ * Formats parameter entries for command help screens.
+ */
+function formatCommandParams(params?: ParamConfig[]): string[] {
+  if (!params || params.length === 0) return [];
+
+  const paramLines = params.map(formatParamLine);
+
+  return ['', 'Parameters:', ...paramLines];
+}
+
+/**
+ * Formats an individual command summary line for general help listings.
+ */
+function formatCommandRow(cmd: CommandConfig): string {
+  const isDef = cmd.isDefault ? ' (default)' : '';
+  const namePart = `${cmd.name}${isDef}`.padEnd(24);
+  const cmdDesc = cmd.description ? `  ${cmd.description}` : '';
+
+  return `  ${namePart}${cmdDesc}`;
+}
+
+/**
+ * Formats the header portion of general CLI usage help.
+ */
+function formatGeneralHeader(config: CliConfig): string[] {
+  const title = formatCliTitle(config.name, config.version);
+  const cliName = config.name || 'coliner';
+  const lines = [title];
+
+  if (config.description) {
+    lines.push(config.description);
   }
 
-  parts.push(`--${param.name}`);
+  lines.push(`Usage: ${cliName} <command> [arguments] [options]`);
 
-  if (param.negator) {
-    parts.push(`[--no-${param.name}]`);
-  }
+  return lines;
+}
 
-  const valuePlaceholder = param.type === 'flag' ? '' : ` <${param.type}>`;
+/**
+ * Generates formatted help documentation for the entire CLI suite.
+ */
+function formatGeneralHelp(config: CliConfig): string {
+  const header = formatGeneralHeader(config);
+  const commandLines = config.commands.map(formatCommandRow);
+  const footer = ['', 'Global Options:', '  -h, --help               Display help information'];
 
-  return `${parts.join(', ')}${valuePlaceholder}`;
+  return [...header, '', 'Commands:', ...commandLines, ...footer].join('\n');
 }
 
 /**
@@ -43,62 +106,46 @@ function formatParamLine(param: ParamConfig): string {
 }
 
 /**
- * Generates formatted help documentation for a specific command.
+ * Builds the flag/alias signature for a parameter (e.g. -a, --alias <text>).
  */
-function formatCommandHelp(command: CommandConfig, cliName: string): string {
-  const lines: string[] = [];
-  const desc = command.description ? ` - ${command.description}` : '';
+function formatParamSignature(param: ParamConfig): string {
+  const flags = getParamFlags(param);
+  const placeholder = getValuePlaceholder(param.type);
 
-  lines.push(`Command: ${command.name}${desc}`);
-  lines.push(`Triggers: '${command.triggers}'`);
-  lines.push('');
-  lines.push(`Usage: ${cliName} ${command.name} [options] [arguments]`);
-
-  const params = command.params || [];
-
-  if (params.length > 0) {
-    lines.push('');
-    lines.push('Parameters:');
-
-    for (const param of params) {
-      lines.push(formatParamLine(param));
-    }
-  }
-
-  return lines.join('\n');
+  return `${flags.join(', ')}${placeholder}`;
 }
 
 /**
- * Generates formatted help documentation for the entire CLI suite.
+ * Gathers and formats all flag representation tokens for a parameter.
  */
-function formatGeneralHelp(config: CliConfig): string {
-  const lines: string[] = [];
-  const cliName = config.name || 'coliner';
-  const desc = config.description ? `${config.description}\n` : '';
+function getParamFlags(param: ParamConfig): string[] {
+  const flags = normalizeAliases(param.alias).map(formatAliasFlag);
 
-  lines.push(`${cliName}${config.version ? ` v${config.version}` : ''}`);
+  flags.push(`--${param.name}`);
 
-  if (desc) {
-    lines.push(desc);
+  if (param.negator) {
+    flags.push(`[--no-${param.name}]`);
   }
 
-  lines.push(`Usage: ${cliName} <command> [arguments] [options]`);
-  lines.push('');
-  lines.push('Commands:');
+  return flags;
+}
 
-  for (const cmd of config.commands) {
-    const isDef = cmd.isDefault ? ' (default)' : '';
-    const namePart = `${cmd.name}${isDef}`.padEnd(24);
-    const cmdDesc = cmd.description ? `  ${cmd.description}` : '';
+/**
+ * Returns value type placeholder string for non-flag parameters.
+ */
+function getValuePlaceholder(type: string): string {
+  if (type === 'flag') return '';
 
-    lines.push(`  ${namePart}${cmdDesc}`);
-  }
+  return ` <${type}>`;
+}
 
-  lines.push('');
-  lines.push('Global Options:');
-  lines.push('  -h, --help               Display help information');
+/**
+ * Normalizes alias configuration into an array of string aliases.
+ */
+function normalizeAliases(alias?: string | string[]): string[] {
+  if (!alias) return [];
 
-  return lines.join('\n');
+  return Array.isArray(alias) ? alias : [alias];
 }
 
 /**
@@ -109,7 +156,8 @@ function formatGeneralHelp(config: CliConfig): string {
  * @example
  * ```ts
  * const formatter = createHelpFormatter(config);
- * console.log(formatter.renderGeneralHelp());
+ * const helpText = formatter.renderGeneralHelp();
+ * // Generates full CLI usage help string
  * ```
  */
 export function createHelpFormatter(config: CliConfig) {

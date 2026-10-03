@@ -73,3 +73,24 @@ commands:
       - name: input-stream
         description: Piped standard input stream
         type: stdin
+
+  - name: deploy
+    description: Deploy application services to target environment
+    triggers: deployment-started
+    params:
+      - name: environment
+        description: Target deployment environment
+        alias: e
+        type: select
+        items:
+          - development
+          - staging
+          - production
+      - name: replicas
+        description: Replicas to spawn
+        alias: r
+        type: select
+        items:
+          - 1
+          - 3
+          - 5

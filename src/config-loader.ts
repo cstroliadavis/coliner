@@ -10,6 +10,7 @@ const VALID_PARAM_TYPES: ParamType[] = [
   'flag',
   'keyword',
   'number',
+  'select',
   'stdin',
   'text',
   'url',
@@ -28,72 +29,118 @@ const DEFAULT_CONFIG_FILENAMES = [
 ];
 
 /**
- * Validates an individual parameter schema definition.
+ * Asserts configuration structure includes a valid commands array.
  */
-function validateParamConfig(param: ParamConfig, commandName: string): void {
-  if (!param.name) {
-    throw new Error(`Parameter in command '${commandName}' is missing required 'name'`);
-  }
-
-  if (!param.type || !VALID_PARAM_TYPES.includes(param.type)) {
-    throw new Error(
-      `Parameter '${param.name}' in command '${commandName}' has invalid type: '${param.type}'. ` +
-        `Expected one of: ${VALID_PARAM_TYPES.join(', ')}`
-    );
+function assertValidCommandsArray(config: CliConfig): void {
+  if (!config || !Array.isArray(config.commands)) {
+    throw new Error("Configuration must have a 'commands' array");
   }
 }
 
 /**
- * Validates command configuration rules and parameter integrity.
+ * Iterates command list verifying unique names and default counts.
  */
-function validateCommandConfig(command: CommandConfig): void {
-  if (!command.name) {
-    throw new Error("Command is missing required 'name'");
+function countDefaultCommands(commands: CommandConfig[]): number {
+  const seen = new Set<string>();
+  let count = 0;
+
+  for (const cmd of commands) {
+    count += registerCommand(cmd, seen);
   }
 
-  if (!command.triggers) {
-    throw new Error(`Command '${command.name}' is missing required 'triggers' event name`);
+  return count;
+}
+
+/**
+ * Searches default configuration filenames in current working directory.
+ */
+function findDefaultCandidate(cwd: string): string | undefined {
+  for (const candidate of DEFAULT_CONFIG_FILENAMES) {
+    const resolved = path.resolve(cwd, candidate);
+
+    if (fs.existsSync(resolved)) return resolved;
   }
 
-  const seenParams = new Set<string>();
+  return undefined;
+}
 
-  for (const param of command.params || []) {
-    validateParamConfig(param, command.name);
+/**
+ * Checks if parameter provides a non-empty array of items.
+ */
+function hasValidItems(items?: (string | number)[]): boolean {
+  return Array.isArray(items) && items.length > 0;
+}
 
-    if (seenParams.has(param.name)) {
-      throw new Error(
-        `Duplicate parameter '${param.name}' detected in command '${command.name}'`
-      );
-    }
+/**
+ * Validates and indexes a single command while tracking default command flags.
+ */
+function registerCommand(command: CommandConfig, seen: Set<string>): number {
+  validateCommandConfig(command);
 
-    seenParams.add(param.name);
+  if (seen.has(command.name)) {
+    throw new Error(`Duplicate command name '${command.name}' in configuration`);
   }
+
+  seen.add(command.name);
+
+  return command.isDefault ? 1 : 0;
+}
+
+/**
+ * Validates and records a parameter configuration for duplicate prevention.
+ */
+function registerCommandParam(param: ParamConfig, commandName: string, seen: Set<string>): void {
+  validateParamConfig(param, commandName);
+
+  if (seen.has(param.name)) {
+    throw new Error(`Duplicate parameter '${param.name}' detected in command '${commandName}'`);
+  }
+
+  seen.add(param.name);
+}
+
+/**
+ * Locates an existing configuration file among standard default candidates.
+ */
+function resolveConfigFile(customPath?: string, cwd?: string): string {
+  const activeCwd = cwd || process.cwd();
+
+  if (customPath) return resolveCustomPath(customPath, activeCwd);
+
+  return resolveDefaultConfig(activeCwd);
+}
+
+/**
+ * Resolves a specified custom file path against the working directory.
+ */
+function resolveCustomPath(customPath: string, cwd: string): string {
+  const resolved = path.resolve(cwd, customPath);
+
+  if (!fs.existsSync(resolved)) {
+    throw new Error(`Configuration file not found: '${resolved}'`);
+  }
+
+  return resolved;
+}
+
+/**
+ * Searches and validates default configuration file presence.
+ */
+function resolveDefaultConfig(cwd: string): string {
+  const found = findDefaultCandidate(cwd);
+
+  if (found) return found;
+
+  throw new Error(`No configuration file found. Checked: ${DEFAULT_CONFIG_FILENAMES.join(', ')}`);
 }
 
 /**
  * Validates the entire CLI schema configuration.
  */
 function validateCliConfig(config: CliConfig): void {
-  if (!config || !Array.isArray(config.commands)) {
-    throw new Error("Configuration must have a 'commands' array");
-  }
+  assertValidCommandsArray(config);
 
-  const seenCommands = new Set<string>();
-  let defaultCount = 0;
-
-  for (const command of config.commands) {
-    validateCommandConfig(command);
-
-    if (seenCommands.has(command.name)) {
-      throw new Error(`Duplicate command name '${command.name}' in configuration`);
-    }
-
-    seenCommands.add(command.name);
-
-    if (command.isDefault) {
-      defaultCount++;
-    }
-  }
+  const defaultCount = countDefaultCommands(config.commands);
 
   if (defaultCount > 1) {
     throw new Error('Only one command can be marked as default (isDefault: true)');
@@ -101,28 +148,74 @@ function validateCliConfig(config: CliConfig): void {
 }
 
 /**
- * Locates an existing configuration file among standard default candidates.
+ * Validates command configuration rules and parameter integrity.
  */
-function resolveConfigFile(customPath?: string, cwd: string = process.cwd()): string {
-  if (customPath) {
-    const resolved = path.resolve(cwd, customPath);
+function validateCommandConfig(command: CommandConfig): void {
+  validateCommandIdentity(command);
+  validateCommandParams(command.params, command.name);
+}
 
-    if (!fs.existsSync(resolved)) {
-      throw new Error(`Configuration file not found: '${resolved}'`);
-    }
-
-    return resolved;
+/**
+ * Validates presence of command name and trigger event.
+ */
+function validateCommandIdentity(command: CommandConfig): void {
+  if (!command.name) {
+    throw new Error("Command is missing required 'name'");
   }
 
-  for (const candidate of DEFAULT_CONFIG_FILENAMES) {
-    const resolved = path.resolve(cwd, candidate);
+  if (!command.triggers) {
+    throw new Error(`Command '${command.name}' is missing required 'triggers' event name`);
+  }
+}
 
-    if (fs.existsSync(resolved)) return resolved;
+/**
+ * Validates parameter collection on a command definition.
+ */
+function validateCommandParams(params: ParamConfig[] | undefined, commandName: string): void {
+  if (!params) return;
+
+  const seen = new Set<string>();
+
+  for (const param of params) {
+    registerCommandParam(param, commandName, seen);
+  }
+}
+
+/**
+ * Validates an individual parameter schema definition.
+ */
+function validateParamConfig(param: ParamConfig, commandName: string): void {
+  if (!param.name) {
+    throw new Error(`Parameter in command '${commandName}' is missing required 'name'`);
   }
 
-  throw new Error(
-    `No configuration file found. Checked: ${DEFAULT_CONFIG_FILENAMES.join(', ')}`
-  );
+  validateParamType(param, commandName);
+  validateSelectItems(param, commandName);
+}
+
+/**
+ * Validates parameter data type against supported types.
+ */
+function validateParamType(param: ParamConfig, commandName: string): void {
+  if (!param.type || !VALID_PARAM_TYPES.includes(param.type)) {
+    throw new Error(
+      `Parameter '${param.name}' in command '${commandName}' has invalid type: '${param.type}'. ` +
+        `Expected one of: ${VALID_PARAM_TYPES.join(', ')}`,
+    );
+  }
+}
+
+/**
+ * Validates that select parameters provide an items choice array.
+ */
+function validateSelectItems(param: ParamConfig, commandName: string): void {
+  if (param.type !== 'select') return;
+
+  if (!hasValidItems(param.items)) {
+    throw new Error(
+      `Parameter '${param.name}' in command '${commandName}' of type 'select' requires a non-empty 'items' array.`,
+    );
+  }
 }
 
 /**
@@ -134,13 +227,24 @@ function resolveConfigFile(customPath?: string, cwd: string = process.cwd()): st
  * ```ts
  * const loader = createConfigLoader();
  * const config = loader.loadFromFile('cli.yaml');
- * // Returns parsed CliConfig
+ * // Returns validated CliConfig
  * ```
  */
 export function createConfigLoader(defaultCwd: string = process.cwd()) {
   const _ = {
     cwd: defaultCwd,
   };
+
+  /**
+   * Loads configuration from a file path or standard candidate.
+   */
+  function loadFromFile(filePath?: string, customCwd?: string): CliConfig {
+    const targetCwd = customCwd || _.cwd;
+    const resolvedPath = resolveConfigFile(filePath, targetCwd);
+    const content = fs.readFileSync(resolvedPath, 'utf-8');
+
+    return parseConfigString(content);
+  }
 
   /**
    * Parses and validates raw configuration text (YAML or JSON).
@@ -159,20 +263,10 @@ export function createConfigLoader(defaultCwd: string = process.cwd()) {
     }
 
     const config = parsed as CliConfig;
+
     validateCliConfig(config);
 
     return config;
-  }
-
-  /**
-   * Loads configuration from a file path or standard candidate.
-   */
-  function loadFromFile(filePath?: string, customCwd?: string): CliConfig {
-    const targetCwd = customCwd || _.cwd;
-    const resolvedPath = resolveConfigFile(filePath, targetCwd);
-    const content = fs.readFileSync(resolvedPath, 'utf-8');
-
-    return parseConfigString(content);
   }
 
   return {

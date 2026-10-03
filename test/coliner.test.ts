@@ -20,9 +20,7 @@ describe('coliner', () => {
         {
           description: 'Rollback deployments',
           name: 'rollback',
-          params: [
-            { description: 'Revision ID', name: 'revision', type: 'number' },
-          ],
+          params: [{ description: 'Revision ID', name: 'revision', type: 'number' }],
           triggers: 'rollback-triggered',
         },
       ],
@@ -49,13 +47,7 @@ describe('coliner', () => {
 
     cli.on('deploy-triggered', handler);
 
-    const result = await cli.execute([
-      'deploy',
-      'production',
-      '--region',
-      'europe-west1',
-      '-f',
-    ]);
+    const result = await cli.execute(['deploy', 'production', '--region', 'europe-west1', '-f']);
 
     expect(handler).toHaveBeenCalledTimes(1);
     expect(handler).toHaveBeenCalledWith(result);
@@ -84,8 +76,9 @@ describe('coliner', () => {
     const { cli } = setup();
 
     const helpText = cli.getHelp('deploy');
+
     expect(helpText).toContain('Command: deploy');
-    expect(helpText).toContain('Triggers: \'deploy-triggered\'');
+    expect(helpText).toContain("Triggers: 'deploy-triggered'");
     expect(helpText).toContain('--env <text>');
     expect(helpText).toContain('-f, --force, [--no-force]');
   });
@@ -94,6 +87,7 @@ describe('coliner', () => {
     const { cli } = setup();
 
     const generalHelp = cli.getHelp();
+
     expect(generalHelp).toContain('deploy-cli v1.0.0');
     expect(generalHelp).toContain('deploy (default)');
     expect(generalHelp).toContain('rollback');
@@ -103,6 +97,7 @@ describe('coliner', () => {
     const { cli } = setup();
 
     const result = await cli.execute(['--help']);
+
     expect(result.triggers).toBe('help');
     expect(result.params.text).toContain('deploy-cli');
   });

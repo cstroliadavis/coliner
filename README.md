@@ -13,7 +13,11 @@ type coercion, and smart named-first positional argument assignment.
   first, followed by assigning remaining positional tokens to unfilled parameters in order of
   definition.
 - **Rich Parameter Types**: Built-in validation and coercion for `text`, `keyword`, `flag`, `date`,
-  `number`, `file`, `stdin`, and `url`.
+  `number`, `file`, `stdin`, `url`, and `select`.
+- **Interactive Select Prompts**: `select` parameters provide an interactive, type-to-filter menu
+  with arrow-key selection in interactive TTY terminals when omitted.
+- **Shell Tab Completions**: Native script generation and dynamic completion lookup for **Bash**,
+  **Zsh**, and **Fish** supporting commands, options, and `select` choices.
 - **Event-Driven Execution**: Each command declares a `triggers` event name that dispatches parsed
   parameters to registered listeners.
 - **Single & Multi-Character Aliases**: Single-letter flags can be chained (`-abc`), and
@@ -34,7 +38,8 @@ commands:
     params:
       - name: kebab-case-param-name
         description: A helpful description to show in help
-        type: text # "text" | "keyword" | "flag" | "date" | "number" | "file" | "stdin" | "url"
+        type: select # "text" | "keyword" | "flag" | "date" | "number" | "file" | "stdin" | "url" | "select"
+        items: [dev, staging, prod] # Required for "select"
         negator: true # Optional: enables --no-<name>
         default: fallback-value # Optional
         alias: [a, alias-name] # Optional: single letter or multi-character string
@@ -42,16 +47,112 @@ commands:
 
 ### Parameter Types
 
-| Type      | Coerced Value | Description & Validation                                         |
-| :-------- | :------------ | :--------------------------------------------------------------- |
-| `text`    | `string`      | General string value.                                            |
-| `keyword` | `string`      | Alphanumeric or kebab-case identifier (`/^[a-zA-Z0-9_\-]+$/`).   |
-| `flag`    | `boolean`     | `true` if supplied without value; accepts true/false/yes/no.     |
-| `date`    | `Date`        | JavaScript Date instance; validated with `!isNaN(getTime())`.    |
-| `number`  | `number`      | Numeric float or integer; validated with `!isNaN(Number(val))`.  |
-| `file`    | `string`      | Validated filesystem path; verifies existence synchronously.     |
-| `stdin`   | `string`      | Input read from process standard input stream or passed content. |
-| `url`     | `URL`         | Validated WHATWG URL instance (`new URL(val)`).                  |
+| Type      | Coerced Value      | Description & Validation                                         |
+| :-------- | :----------------- | :--------------------------------------------------------------- |
+| `text`    | `string`           | General string value.                                            |
+| `keyword` | `string`           | Alphanumeric or kebab-case identifier (`/^[a-zA-Z0-9_\-]+$/`).   |
+| `flag`    | `boolean`          | `true` if supplied without value; accepts true/false/yes/no.     |
+| `date`    | `Date`             | JavaScript Date instance; validated with `!isNaN(getTime())`.    |
+| `number`  | `number`           | Numeric float or integer; validated with `!isNaN(Number(val))`.  |
+| `file`    | `string`           | Validated filesystem path; verifies existence synchronously.     |
+| `stdin`   | `string`           | Input read from process standard input stream or passed content. |
+| `url`     | `URL`              | Validated WHATWG URL instance (`new URL(val)`).                  |
+| `select`  | `string \| number` | Item from `items` list; prompts interactively in TTY if omitted. |
+
+## Shell Tab Completions
+
+Coliner automatically equips any CLI application created with it with a built-in `completion` command.
+There is no boilerplate or custom completion code required in your application logic.
+
+### 1. Activating in Zsh
+
+**Instant activation for current session:**
+
+```zsh
+source <(your-cli completion zsh)
+```
+
+**Permanent setup via `~/.zshrc`:**
+
+Add this line to your `~/.zshrc`:
+
+```zsh
+eval "$(your-cli completion zsh)"
+```
+
+Alternatively, if you organize completions in a function directory on your `$fpath` (e.g. `~/.zfunc`):
+
+```zsh
+# 1. Output the completion definition to your fpath folder:
+your-cli completion zsh > ~/.zfunc/_your-cli
+
+# 2. Ensure your ~/.zshrc initializes fpath before compinit:
+# fpath=(~/.zfunc $fpath)
+# autoload -Uz compinit && compinit
+```
+
+### 2. Activating in Bash
+
+**Instant activation for current session:**
+
+```bash
+source <(your-cli completion bash)
+```
+
+**Permanent setup via `~/.bashrc`:**
+
+```bash
+echo 'eval "$(your-cli completion bash)"' >> ~/.bashrc
+```
+
+Or install it into your system's bash-completion directory:
+
+```bash
+# Linux
+your-cli completion bash | sudo tee /etc/bash_completion.d/your-cli
+
+# macOS (Homebrew bash-completion)
+your-cli completion bash > $(brew --prefix)/etc/bash_completion.d/your-cli
+```
+
+### 3. Activating in Fish
+
+Fish automatically discovers completions saved in `~/.config/fish/completions/`:
+
+```fish
+your-cli completion fish > ~/.config/fish/completions/your-cli.fish
+```
+
+Or activate immediately in the current shell session:
+
+```fish
+your-cli completion fish | source
+```
+
+### 4. Programmatic API
+
+You can also generate completion scripts or query completions programmatically:
+
+```typescript
+import { createColiner } from 'coliner';
+
+const cli = createColiner({ config: 'cli.yaml' });
+
+// Generate shell script string:
+const zshScript = cli.generateCompletionScript('zsh');
+
+// Query dynamic suggestions for an array of tokens:
+const suggestions = cli.getCompletions(['deploy', '--env', '']);
+// Returns: [{ value: 'development', description: '...' }, ...]
+```
+
+### Dynamic Capabilities
+
+Generated completion scripts dynamically delegate to your CLI:
+
+- **Root Level**: Suggests all commands and global options (`--help`, `--config`).
+- **Command Flags**: Suggests all flags, short aliases, and inverted `--no-<flag>` negators.
+- **Select Parameters**: Suggests all valid `items` choices when typing options or positional values.
 
 ## Positional and Named Assignment Rules
 
@@ -90,15 +191,15 @@ Resulting parameters payload:
 ## Programmatic Usage
 
 ```typescript
-import { createColiner } from "coliner";
+import { createColiner } from 'coliner';
 
 const cli = createColiner({
-  config: "example/cli.yaml",
+  config: 'example/cli.yaml',
 });
 
-cli.on("user-created", async ({ params, rawArgs, triggers }) => {
-  console.log("Event triggered:", triggers);
-  console.log("Params:", params);
+cli.on('user-created', async ({ params, rawArgs, triggers }) => {
+  console.log('Event triggered:', triggers);
+  console.log('Params:', params);
 });
 
 await cli.execute();
@@ -107,8 +208,11 @@ await cli.execute();
 ## Running with Bun
 
 ```bash
-# Run tests
+# Run all tests (unit and e2e)
 bun test
+
+# Run end-to-end CLI tests exclusively
+bun run test:e2e
 
 # Display help
 bun run ./bin/coliner.ts --config example/cli.yaml --help

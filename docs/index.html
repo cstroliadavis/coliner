@@ -1,0 +1,212 @@
+<!DOCTYPE html><html class="default" lang="en" data-base="./"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>coliner - v0.1.0</title><meta name="description" content="Documentation for coliner"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script defer src="assets/main.js"></script><script async src="assets/icons.js" id="tsd-icons-script"></script><script async src="assets/search.js" id="tsd-search-script"></script><script async src="assets/navigation.js" id="tsd-nav-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container"><a href="index.html" class="title">coliner - v0.1.0</a>
+<div id="tsd-toolbar-links"></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
+<ul role="listbox" id="tsd-search-results"></ul>
+<div id="tsd-search-status" aria-live="polite" aria-atomic="true">
+<div>Preparing search index...</div></div></dialog><a href="#" class="tsd-widget menu" id="tsd-toolbar-menu-trigger" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-menu"></use></svg></a></div></header>
+<div class="container container-main">
+<div class="col-content">
+<div class="tsd-page-title">
+<h1>coliner - v0.1.0</h1></div>
+<div class="tsd-panel tsd-typography"><h1 id="coliner" class="tsd-anchor-link">Coliner<a href="#coliner" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
+<p>A declarative, YAML/JSON-driven command line tool builder for <strong>Bun</strong> with event triggers, strict
+type coercion, and smart named-first positional argument assignment.</p>
+<h2 id="features" class="tsd-anchor-link">Features<a href="#features" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<ul>
+<li><strong>Built for Bun</strong>: Native execution of TypeScript CLI files and fast test execution via <code>bun test</code>
+without requiring a compile step.</li>
+<li><strong>Declarative YAML/JSON Schema</strong>: Define commands, parameters, aliases, types, and events in a
+clear configuration file.</li>
+<li><strong>Priority-Based Argument Resolution</strong>: Named flags/options (<code>--param=val</code>, <code>-a val</code>) are parsed
+first, followed by assigning remaining positional tokens to unfilled parameters in order of
+definition.</li>
+<li><strong>Rich Parameter Types</strong>: Built-in validation and coercion for <code>text</code>, <code>keyword</code>, <code>flag</code>, <code>date</code>,
+<code>number</code>, <code>file</code>, <code>stdin</code>, <code>url</code>, and <code>select</code>.</li>
+<li><strong>Interactive Select Prompts</strong>: <code>select</code> parameters provide an interactive, type-to-filter menu
+with arrow-key selection in interactive TTY terminals when omitted.</li>
+<li><strong>Shell Tab Completions</strong>: Native script generation and dynamic completion lookup for <strong>Bash</strong>,
+<strong>Zsh</strong>, and <strong>Fish</strong> supporting commands, options, and <code>select</code> choices.</li>
+<li><strong>Event-Driven Execution</strong>: Each command declares a <code>triggers</code> event name that dispatches parsed
+parameters to registered listeners.</li>
+<li><strong>Single &amp; Multi-Character Aliases</strong>: Single-letter flags can be chained (<code>-abc</code>), and
+multi-character aliases require <code>--</code>.</li>
+<li><strong>Negators</strong>: Parameters with <code>negator: true</code> support <code>--no-&lt;name&gt;</code> syntax to set flags to
+<code>false</code>.</li>
+<li><strong>Automatic Help Generation</strong>: Formatted global and command-specific help screens with usage,
+descriptions, defaults, and type hints.</li>
+</ul>
+<h2 id="schema" class="tsd-anchor-link">Schema<a href="#schema" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<pre><code class="yaml"><span class="hl-0">commands</span><span class="hl-1">:</span><br/><span class="hl-1">  - </span><span class="hl-0">name</span><span class="hl-1">: </span><span class="hl-2">kebab-case-command-name</span><br/><span class="hl-1">    </span><span class="hl-0">description</span><span class="hl-1">: </span><span class="hl-2">A helpful description to show if the &quot;help&quot; command is made</span><br/><span class="hl-1">    </span><span class="hl-0">isDefault</span><span class="hl-1">: </span><span class="hl-3">true</span><span class="hl-1"> </span><span class="hl-4"># Optional: command to invoke when none is specified</span><br/><span class="hl-1">    </span><span class="hl-0">triggers</span><span class="hl-1">: </span><span class="hl-2">event-name-to-trigger</span><br/><span class="hl-1">    </span><span class="hl-0">params</span><span class="hl-1">:</span><br/><span class="hl-1">      - </span><span class="hl-0">name</span><span class="hl-1">: </span><span class="hl-2">kebab-case-param-name</span><br/><span class="hl-1">        </span><span class="hl-0">description</span><span class="hl-1">: </span><span class="hl-2">A helpful description to show in help</span><br/><span class="hl-1">        </span><span class="hl-0">type</span><span class="hl-1">: </span><span class="hl-2">select</span><span class="hl-1"> </span><span class="hl-4"># &quot;text&quot; | &quot;keyword&quot; | &quot;flag&quot; | &quot;date&quot; | &quot;number&quot; | &quot;file&quot; | &quot;stdin&quot; | &quot;url&quot; | &quot;select&quot;</span><br/><span class="hl-1">        </span><span class="hl-0">items</span><span class="hl-1">: [</span><span class="hl-2">dev</span><span class="hl-1">, </span><span class="hl-2">staging</span><span class="hl-1">, </span><span class="hl-2">prod</span><span class="hl-1">] </span><span class="hl-4"># Required for &quot;select&quot;</span><br/><span class="hl-1">        </span><span class="hl-0">negator</span><span class="hl-1">: </span><span class="hl-3">true</span><span class="hl-1"> </span><span class="hl-4"># Optional: enables --no-&lt;name&gt;</span><br/><span class="hl-1">        </span><span class="hl-0">default</span><span class="hl-1">: </span><span class="hl-2">fallback-value</span><span class="hl-1"> </span><span class="hl-4"># Optional</span><br/><span class="hl-1">        </span><span class="hl-0">alias</span><span class="hl-1">: [</span><span class="hl-2">a</span><span class="hl-1">, </span><span class="hl-2">alias-name</span><span class="hl-1">] </span><span class="hl-4"># Optional: single letter or multi-character string</span>
+</code><button type="button">Copy</button></pre>
+
+<h3 id="parameter-types" class="tsd-anchor-link">Parameter Types<a href="#parameter-types" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Type</th>
+<th style="text-align:left">Coerced Value</th>
+<th style="text-align:left">Description &amp; Validation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>text</code></td>
+<td style="text-align:left"><code>string</code></td>
+<td style="text-align:left">General string value.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>keyword</code></td>
+<td style="text-align:left"><code>string</code></td>
+<td style="text-align:left">Alphanumeric or kebab-case identifier (<code>/^[a-zA-Z0-9_\-]+$/</code>).</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>flag</code></td>
+<td style="text-align:left"><code>boolean</code></td>
+<td style="text-align:left"><code>true</code> if supplied without value; accepts true/false/yes/no.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>date</code></td>
+<td style="text-align:left"><code>Date</code></td>
+<td style="text-align:left">JavaScript Date instance; validated with <code>!isNaN(getTime())</code>.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>number</code></td>
+<td style="text-align:left"><code>number</code></td>
+<td style="text-align:left">Numeric float or integer; validated with <code>!isNaN(Number(val))</code>.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>file</code></td>
+<td style="text-align:left"><code>string</code></td>
+<td style="text-align:left">Validated filesystem path; verifies existence synchronously.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>stdin</code></td>
+<td style="text-align:left"><code>string</code></td>
+<td style="text-align:left">Input read from process standard input stream or passed content.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>url</code></td>
+<td style="text-align:left"><code>URL</code></td>
+<td style="text-align:left">Validated WHATWG URL instance (<code>new URL(val)</code>).</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>select</code></td>
+<td style="text-align:left"><code>string | number</code></td>
+<td style="text-align:left">Item from <code>items</code> list; prompts interactively in TTY if omitted.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="shell-tab-completions" class="tsd-anchor-link">Shell Tab Completions<a href="#shell-tab-completions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Coliner automatically equips any CLI application created with it with a built-in <code>completion</code> command.
+There is no boilerplate or custom completion code required in your application logic.</p>
+<h3 id="1-activating-in-zsh" class="tsd-anchor-link">1. Activating in Zsh<a href="#1-activating-in-zsh" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p><strong>Instant activation for current session:</strong></p>
+<pre><code class="zsh"><span class="hl-5">source</span><span class="hl-1"> </span><span class="hl-6">&lt;(</span><span class="hl-5">your-cli</span><span class="hl-6"> completion zsh)</span>
+</code><button type="button">Copy</button></pre>
+
+<p><strong>Permanent setup via <code>~/.zshrc</code>:</strong></p>
+<p>Add this line to your <code>~/.zshrc</code>:</p>
+<pre><code class="zsh"><span class="hl-5">eval</span><span class="hl-1"> </span><span class="hl-6">&quot;$(</span><span class="hl-5">your-cli</span><span class="hl-6"> completion zsh)&quot;</span>
+</code><button type="button">Copy</button></pre>
+
+<p>Alternatively, if you organize completions in a function directory on your <code>$fpath</code> (e.g. <code>~/.zfunc</code>):</p>
+<pre><code class="zsh"><span class="hl-4"># 1. Output the completion definition to your fpath folder:</span><br/><span class="hl-5">your-cli</span><span class="hl-1"> </span><span class="hl-6">completion</span><span class="hl-1"> </span><span class="hl-6">zsh</span><span class="hl-1"> &gt; </span><span class="hl-6">~/.zfunc/_your-cli</span><br/><br/><span class="hl-4"># 2. Ensure your ~/.zshrc initializes fpath before compinit:</span><br/><span class="hl-4"># fpath=(~/.zfunc $fpath)</span><br/><span class="hl-4"># autoload -Uz compinit &amp;&amp; compinit</span>
+</code><button type="button">Copy</button></pre>
+
+<h3 id="2-activating-in-bash" class="tsd-anchor-link">2. Activating in Bash<a href="#2-activating-in-bash" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p><strong>Instant activation for current session:</strong></p>
+<pre><code class="bash"><span class="hl-5">source</span><span class="hl-1"> </span><span class="hl-6">&lt;(</span><span class="hl-5">your-cli</span><span class="hl-6"> completion bash)</span>
+</code><button type="button">Copy</button></pre>
+
+<p><strong>Permanent setup via <code>~/.bashrc</code>:</strong></p>
+<pre><code class="bash"><span class="hl-5">echo</span><span class="hl-1"> </span><span class="hl-6">&#39;eval &quot;$(your-cli completion bash)&quot;&#39;</span><span class="hl-1"> &gt;&gt; </span><span class="hl-6">~/.bashrc</span>
+</code><button type="button">Copy</button></pre>
+
+<p>Or install it into your system's bash-completion directory:</p>
+<pre><code class="bash"><span class="hl-4"># Linux</span><br/><span class="hl-5">your-cli</span><span class="hl-1"> </span><span class="hl-6">completion</span><span class="hl-1"> </span><span class="hl-6">bash</span><span class="hl-1"> | </span><span class="hl-5">sudo</span><span class="hl-1"> </span><span class="hl-6">tee</span><span class="hl-1"> </span><span class="hl-6">/etc/bash_completion.d/your-cli</span><br/><br/><span class="hl-4"># macOS (Homebrew bash-completion)</span><br/><span class="hl-5">your-cli</span><span class="hl-1"> </span><span class="hl-6">completion</span><span class="hl-1"> </span><span class="hl-6">bash</span><span class="hl-1"> &gt; $(</span><span class="hl-5">brew</span><span class="hl-1"> </span><span class="hl-3">--prefix</span><span class="hl-1">)</span><span class="hl-6">/etc/bash_completion.d/your-cli</span>
+</code><button type="button">Copy</button></pre>
+
+<h3 id="3-activating-in-fish" class="tsd-anchor-link">3. Activating in Fish<a href="#3-activating-in-fish" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>Fish automatically discovers completions saved in <code>~/.config/fish/completions/</code>:</p>
+<pre><code class="fish"><span class="hl-5">your-cli</span><span class="hl-1"> completion fish &gt; ~/.config/fish/completions/your-cli.fish</span>
+</code><button type="button">Copy</button></pre>
+
+<p>Or activate immediately in the current shell session:</p>
+<pre><code class="fish"><span class="hl-5">your-cli</span><span class="hl-1"> completion fish | </span><span class="hl-7">source</span>
+</code><button type="button">Copy</button></pre>
+
+<h3 id="4-programmatic-api" class="tsd-anchor-link">4. Programmatic API<a href="#4-programmatic-api" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>You can also generate completion scripts or query completions programmatically:</p>
+<pre><code class="typescript"><span class="hl-7">import</span><span class="hl-1"> { </span><span class="hl-8">createColiner</span><span class="hl-1"> } </span><span class="hl-7">from</span><span class="hl-1"> </span><span class="hl-6">&#39;coliner&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-9">cli</span><span class="hl-1"> = </span><span class="hl-5">createColiner</span><span class="hl-1">({ </span><span class="hl-8">config:</span><span class="hl-1"> </span><span class="hl-6">&#39;cli.yaml&#39;</span><span class="hl-1"> });</span><br/><br/><span class="hl-4">// Generate shell script string:</span><br/><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-9">zshScript</span><span class="hl-1"> = </span><span class="hl-8">cli</span><span class="hl-1">.</span><span class="hl-5">generateCompletionScript</span><span class="hl-1">(</span><span class="hl-6">&#39;zsh&#39;</span><span class="hl-1">);</span><br/><br/><span class="hl-4">// Query dynamic suggestions for an array of tokens:</span><br/><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-9">suggestions</span><span class="hl-1"> = </span><span class="hl-8">cli</span><span class="hl-1">.</span><span class="hl-5">getCompletions</span><span class="hl-1">([</span><span class="hl-6">&#39;deploy&#39;</span><span class="hl-1">, </span><span class="hl-6">&#39;--env&#39;</span><span class="hl-1">, </span><span class="hl-6">&#39;&#39;</span><span class="hl-1">]);</span><br/><span class="hl-4">// Returns: [{ value: &#39;development&#39;, description: &#39;...&#39; }, ...]</span>
+</code><button type="button">Copy</button></pre>
+
+<h3 id="dynamic-capabilities" class="tsd-anchor-link">Dynamic Capabilities<a href="#dynamic-capabilities" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>Generated completion scripts dynamically delegate to your CLI:</p>
+<ul>
+<li><strong>Root Level</strong>: Suggests all commands and global options (<code>--help</code>, <code>--config</code>).</li>
+<li><strong>Command Flags</strong>: Suggests all flags, short aliases, and inverted <code>--no-&lt;flag&gt;</code> negators.</li>
+<li><strong>Select Parameters</strong>: Suggests all valid <code>items</code> choices when typing options or positional values.</li>
+</ul>
+<h2 id="positional-and-named-assignment-rules" class="tsd-anchor-link">Positional and Named Assignment Rules<a href="#positional-and-named-assignment-rules" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Named parameters are extracted first. All remaining unnamed positional tokens are assigned to the
+remaining unfilled parameters in their schema definition order.</p>
+<h3 id="example" class="tsd-anchor-link">Example<a href="#example" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>Given a command with parameters <code>param-1</code>, <code>param-2</code> (alias <code>-a</code>), <code>param-3</code>, <code>param-4</code>, <code>param-5</code>,
+<code>param-6</code>, and <code>some-param</code>:</p>
+<pre><code class="bash"><span class="hl-5">bun</span><span class="hl-1"> </span><span class="hl-6">run</span><span class="hl-1"> </span><span class="hl-6">./bin/coliner.ts</span><span class="hl-1"> </span><span class="hl-3">--config</span><span class="hl-1"> </span><span class="hl-6">example/cli.yaml</span><span class="hl-1"> </span><span class="hl-6">some-command</span><span class="hl-1"> </span><span class="hl-10">\</span><br/><span class="hl-1">  </span><span class="hl-6">&quot;My first Param is assigned to the first parameter&quot;</span><span class="hl-1"> </span><span class="hl-10">\</span><br/><span class="hl-1">  </span><span class="hl-3">--some-param=</span><span class="hl-6">&quot;assigned to some-param&quot;</span><span class="hl-1"> </span><span class="hl-10">\</span><br/><span class="hl-1">  </span><span class="hl-3">-a</span><span class="hl-1"> </span><span class="hl-6">&quot;assigned to the command with alias a&quot;</span><span class="hl-1"> </span><span class="hl-10">\</span><br/><span class="hl-1">  </span><span class="hl-6">&quot;Assuming that the param with alias a was the second param, this value will be assigned to the 3rd param&quot;</span><span class="hl-1"> </span><span class="hl-10">\</span><br/><span class="hl-1">  </span><span class="hl-11">4</span><span class="hl-1"> </span><span class="hl-3">true</span><span class="hl-1"> </span><span class="hl-10">\</span><br/><span class="hl-1">  </span><span class="hl-6">&quot;this will be assigned to the 6th param and the previous 2 would have been assigned to the 4th and 5th respectively&quot;</span>
+</code><button type="button">Copy</button></pre>
+
+<p>Resulting parameters payload:</p>
+<pre><code class="json"><span class="hl-1">{</span><br/><span class="hl-1">  </span><span class="hl-12">&quot;param-1&quot;</span><span class="hl-1">: </span><span class="hl-6">&quot;My first Param is assigned to the first parameter&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-12">&quot;param-2&quot;</span><span class="hl-1">: </span><span class="hl-6">&quot;assigned to the command with alias a&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-12">&quot;param-3&quot;</span><span class="hl-1">: </span><span class="hl-6">&quot;Assuming that the param with alias a was the second param, this value will be assigned to the 3rd param&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-12">&quot;param-4&quot;</span><span class="hl-1">: </span><span class="hl-11">4</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-12">&quot;param-5&quot;</span><span class="hl-1">: </span><span class="hl-3">true</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-12">&quot;param-6&quot;</span><span class="hl-1">: </span><span class="hl-6">&quot;this will be assigned to the 6th param and the previous 2 would have been assigned to the 4th and 5th respectively&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-12">&quot;some-param&quot;</span><span class="hl-1">: </span><span class="hl-6">&quot;assigned to some-param&quot;</span><br/><span class="hl-1">}</span>
+</code><button type="button">Copy</button></pre>
+
+<h2 id="programmatic-usage" class="tsd-anchor-link">Programmatic Usage<a href="#programmatic-usage" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<pre><code class="typescript"><span class="hl-7">import</span><span class="hl-1"> { </span><span class="hl-8">createColiner</span><span class="hl-1"> } </span><span class="hl-7">from</span><span class="hl-1"> </span><span class="hl-6">&#39;coliner&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-9">cli</span><span class="hl-1"> = </span><span class="hl-5">createColiner</span><span class="hl-1">({</span><br/><span class="hl-1">  </span><span class="hl-8">config:</span><span class="hl-1"> </span><span class="hl-6">&#39;example/cli.yaml&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">});</span><br/><br/><span class="hl-8">cli</span><span class="hl-1">.</span><span class="hl-5">on</span><span class="hl-1">(</span><span class="hl-6">&#39;user-created&#39;</span><span class="hl-1">, </span><span class="hl-3">async</span><span class="hl-1"> ({ </span><span class="hl-8">params</span><span class="hl-1">, </span><span class="hl-8">rawArgs</span><span class="hl-1">, </span><span class="hl-8">triggers</span><span class="hl-1"> }) </span><span class="hl-3">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-8">console</span><span class="hl-1">.</span><span class="hl-5">log</span><span class="hl-1">(</span><span class="hl-6">&#39;Event triggered:&#39;</span><span class="hl-1">, </span><span class="hl-8">triggers</span><span class="hl-1">);</span><br/><span class="hl-1">  </span><span class="hl-8">console</span><span class="hl-1">.</span><span class="hl-5">log</span><span class="hl-1">(</span><span class="hl-6">&#39;Params:&#39;</span><span class="hl-1">, </span><span class="hl-8">params</span><span class="hl-1">);</span><br/><span class="hl-1">});</span><br/><br/><span class="hl-7">await</span><span class="hl-1"> </span><span class="hl-8">cli</span><span class="hl-1">.</span><span class="hl-5">execute</span><span class="hl-1">();</span>
+</code><button type="button">Copy</button></pre>
+
+<h2 id="running-with-bun" class="tsd-anchor-link">Running with Bun<a href="#running-with-bun" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<pre><code class="bash"><span class="hl-4"># Run all tests (unit and e2e)</span><br/><span class="hl-5">bun</span><span class="hl-1"> </span><span class="hl-6">test</span><br/><br/><span class="hl-4"># Run end-to-end CLI tests exclusively</span><br/><span class="hl-5">bun</span><span class="hl-1"> </span><span class="hl-6">run</span><span class="hl-1"> </span><span class="hl-6">test:e2e</span><br/><br/><span class="hl-4"># Display help</span><br/><span class="hl-5">bun</span><span class="hl-1"> </span><span class="hl-6">run</span><span class="hl-1"> </span><span class="hl-6">./bin/coliner.ts</span><span class="hl-1"> </span><span class="hl-3">--config</span><span class="hl-1"> </span><span class="hl-6">example/cli.yaml</span><span class="hl-1"> </span><span class="hl-3">--help</span><br/><br/><span class="hl-4"># Display command-specific help</span><br/><span class="hl-5">bun</span><span class="hl-1"> </span><span class="hl-6">run</span><span class="hl-1"> </span><span class="hl-6">./bin/coliner.ts</span><span class="hl-1"> </span><span class="hl-3">--config</span><span class="hl-1"> </span><span class="hl-6">example/cli.yaml</span><span class="hl-1"> </span><span class="hl-6">help</span><span class="hl-1"> </span><span class="hl-6">user-add</span><br/><br/><span class="hl-4"># Execute a command</span><br/><span class="hl-5">bun</span><span class="hl-1"> </span><span class="hl-6">run</span><span class="hl-1"> </span><span class="hl-6">./bin/coliner.ts</span><span class="hl-1"> </span><span class="hl-3">--config</span><span class="hl-1"> </span><span class="hl-6">example/cli.yaml</span><span class="hl-1"> </span><span class="hl-6">user-add</span><span class="hl-1"> </span><span class="hl-6">alice</span><span class="hl-1"> </span><span class="hl-3">-e</span><span class="hl-1"> </span><span class="hl-6">alice@example.com</span><span class="hl-1"> </span><span class="hl-3">--no-active</span>
+</code><button type="button">Copy</button></pre>
+
+</div></div>
+<div class="col-sidebar">
+<div class="page-menu">
+<div class="tsd-navigation settings">
+<details class="tsd-accordion"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></div>
+<div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<details open class="tsd-accordion tsd-page-navigation"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>On This Page</h3></summary>
+<div class="tsd-accordion-details"><a href="#coliner"><span>Coliner</span></a>
+<ul>
+<li><a href="#features"><span>Features</span></a></li>
+<li><a href="#schema"><span>Schema</span></a></li>
+<li>
+<ul>
+<li><a href="#parameter-types"><span>Parameter <wbr/>Types</span></a></li></ul></li>
+<li><a href="#shell-tab-completions"><span>Shell <wbr/>Tab <wbr/>Completions</span></a></li>
+<li>
+<ul>
+<li><a href="#1-activating-in-zsh"><span>1. <wbr/>Activating in <wbr/>Zsh</span></a></li>
+<li><a href="#2-activating-in-bash"><span>2. <wbr/>Activating in <wbr/>Bash</span></a></li>
+<li><a href="#3-activating-in-fish"><span>3. <wbr/>Activating in <wbr/>Fish</span></a></li>
+<li><a href="#4-programmatic-api"><span>4. <wbr/>Programmatic <wbr/>API</span></a></li>
+<li><a href="#dynamic-capabilities"><span>Dynamic <wbr/>Capabilities</span></a></li></ul></li>
+<li><a href="#positional-and-named-assignment-rules"><span>Positional and <wbr/>Named <wbr/>Assignment <wbr/>Rules</span></a></li>
+<li>
+<ul>
+<li><a href="#example"><span>Example</span></a></li></ul></li>
+<li><a href="#programmatic-usage"><span>Programmatic <wbr/>Usage</span></a></li>
+<li><a href="#running-with-bun"><span>Running with <wbr/>Bun</span></a></li></ul></div></details></div>
+<div class="site-menu">
+<nav class="tsd-navigation"><a href="modules.html">coliner - v0.1.0</a>
+<ul class="tsd-small-nested-navigation" id="tsd-nav-container">
+<li>Loading...</li></ul></nav></div></div></div><footer>
+<p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer>
+<div class="overlay"></div></body></html>

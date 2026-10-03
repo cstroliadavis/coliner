@@ -1,0 +1,23 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "cleanOutputDir": true,
+  "disableGit": true,
+  "disableSources": true,
+  "entryPoints": ["src/index.ts"],
+  "highlightLanguages": [
+    "bash",
+    "css",
+    "fish",
+    "html",
+    "javascript",
+    "json",
+    "sh",
+    "typescript",
+    "yaml",
+    "zsh"
+  ],
+  "includeVersion": true,
+  "name": "coliner",
+  "out": "docs",
+  "readme": "README.md"
+}

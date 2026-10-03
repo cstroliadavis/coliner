@@ -3,39 +3,54 @@
 import process from 'node:process';
 import { createColiner } from '../src/index.js';
 
-interface ParsedCliOptions {
-  cleanArgs: string[];
-  configPath?: string;
-}
-
 /**
  * Extracts CLI-level configuration options such as --config or -c.
  */
 function extractCliOptions(argv: string[]): ParsedCliOptions {
-  let configPath: string | undefined;
-  const cleanArgs: string[] = [];
+  const state: CliScanState = { cleanArgs: [], i: 0 };
 
-  let i = 0;
-  while (i < argv.length) {
-    const arg = argv[i];
-
-    if (arg === '--config' || arg === '-c') {
-      configPath = argv[i + 1];
-      i += 2;
-      continue;
-    }
-
-    if (arg.startsWith('--config=')) {
-      configPath = arg.slice('--config='.length);
-      i++;
-      continue;
-    }
-
-    cleanArgs.push(arg);
-    i++;
+  while (state.i < argv.length) {
+    processArg(argv, state);
   }
 
-  return { cleanArgs, configPath };
+  return { cleanArgs: state.cleanArgs, configPath: state.configPath };
+}
+
+/**
+ * Checks whether argument string matches the config flag or alias.
+ */
+function isConfigAlias(arg: string): boolean {
+  return ['--config', '-c'].includes(arg);
+}
+
+/**
+ * Parses config flag at current argument index.
+ */
+function parseConfigFlag(argv: string[], index: number): { path?: string; step: number } | null {
+  const arg = argv[index];
+
+  if (isConfigAlias(arg)) return { path: argv[index + 1], step: 2 };
+
+  if (arg.startsWith('--config=')) return { path: arg.slice('--config='.length), step: 1 };
+
+  return null;
+}
+
+/**
+ * Processes an individual argument token during CLI option scanning.
+ */
+function processArg(argv: string[], state: CliScanState): void {
+  const configFlag = parseConfigFlag(argv, state.i);
+
+  if (configFlag) {
+    state.configPath = configFlag.path;
+    state.i += configFlag.step;
+
+    return;
+  }
+
+  state.cleanArgs.push(argv[state.i]);
+  state.i += 1;
 }
 
 /**
@@ -49,7 +64,6 @@ async function run(): Promise<void> {
       config: configPath,
       cwd: process.cwd(),
     });
-
     const config = cli.getConfig();
 
     for (const cmd of config.commands) {
@@ -67,3 +81,14 @@ async function run(): Promise<void> {
 }
 
 run();
+
+interface CliScanState {
+  cleanArgs: string[];
+  configPath?: string;
+  i: number;
+}
+
+interface ParsedCliOptions {
+  cleanArgs: string[];
+  configPath?: string;
+}

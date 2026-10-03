@@ -59,6 +59,7 @@ commands:
     });
 
     const config = loader.parseConfigString(jsonContent);
+
     expect(config.commands[0].name).toBe('ping');
     expect(config.commands[0].triggers).toBe('ping-event');
   });

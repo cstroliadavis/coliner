@@ -48,12 +48,12 @@ describe('arg-parser', () => {
     expect(result['param-1']).toBe('My first Param is assigned to the first parameter');
     expect(result['param-2']).toBe('assigned to the command with alias a');
     expect(result['param-3']).toBe(
-      'Assuming that the param with alias a was the second param, this value will be assigned to the 3rd param'
+      'Assuming that the param with alias a was the second param, this value will be assigned to the 3rd param',
     );
     expect(result['param-4']).toBe(4);
     expect(result['param-5']).toBe(true);
     expect(result['param-6']).toBe(
-      'this will be assigned to the 6th param and the previous 2 would have been assigned to the 4th and 5th respectively'
+      'this will be assigned to the 6th param and the previous 2 would have been assigned to the 4th and 5th respectively',
     );
     expect(result['some-param']).toBe('assigned to some-param');
   });

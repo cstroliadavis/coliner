@@ -121,4 +121,18 @@ describe('param-coercer', () => {
     expect(coercer.coerce(param, 3)).toBe(3);
     expect(() => coercer.coerce(param, '5')).toThrow(TypeError);
   });
+
+  it('accepts custom string value on select parameter when allowCustom is true', () => {
+    const { coercer } = setup();
+
+    const param = {
+      allowCustom: true,
+      items: ['apple', 'banana'],
+      name: 'fruit',
+      type: 'select' as const,
+    };
+
+    expect(coercer.coerce(param, 'orange')).toBe('orange');
+    expect(coercer.coerce(param, 'apple')).toBe('apple');
+  });
 });

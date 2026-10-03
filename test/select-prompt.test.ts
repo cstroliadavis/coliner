@@ -97,6 +97,30 @@ describe('select-prompt', () => {
     expect(result).toBe('cherry');
   });
 
+  it('submits custom typed value when allowCustom is true and no item matches filter', async () => {
+    const { input, output } = createMockStreams();
+
+    const promise = promptSelect({
+      allowCustom: true,
+      input,
+      items: ['alpha', 'beta'],
+      output,
+      paramName: 'item',
+    });
+
+    input.emit('data', 'c');
+    input.emit('data', 'u');
+    input.emit('data', 's');
+    input.emit('data', 't');
+    input.emit('data', 'o');
+    input.emit('data', 'm');
+    input.emit('data', '\r');
+
+    const result = await promise;
+
+    expect(result).toBe('custom');
+  });
+
   it('rejects on cancellation with ctrl-c', async () => {
     const { input, output } = createMockStreams();
 

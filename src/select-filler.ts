@@ -74,6 +74,7 @@ async function promptAllMissing(missing: ParamConfig[], ctx: PromptContext): Pro
 async function promptAndAssignSelect(param: ParamConfig, ctx: PromptContext): Promise<void> {
   const items = await extractSelectItems(param.items);
   const chosen = await promptSelect({
+    allowCustom: param.allowCustom,
     input: ctx.streams.input,
     items,
     output: ctx.streams.output,

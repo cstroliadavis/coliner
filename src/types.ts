@@ -26,6 +26,9 @@ export interface ParamConfig {
   /** Optional single-character or multi-character alias flags. */
   alias?: string | string[];
 
+  /** If true, allows custom unlisted values for select parameters. */
+  allowCustom?: boolean;
+
   /** Default fallback value if parameter is not supplied in CLI arguments. */
   default?: unknown;
 

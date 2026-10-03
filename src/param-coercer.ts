@@ -88,9 +88,11 @@ function coerceNumber(value: unknown, paramName: string): number {
 function coerceSelect(value: unknown, param: ParamConfig): string | number {
   const items = extractSyncSelectItems(param.items);
 
-  if (items && items.length > 0) return dispatchSelectMatch(value, items, param.name);
+  if (!hasSyncItems(items)) return String(value);
 
-  return String(value);
+  if (param.allowCustom) return matchCustomSelect(value, items as (string | number)[]);
+
+  return dispatchSelectMatch(value, items as (string | number)[], param.name);
 }
 
 /**
@@ -154,6 +156,13 @@ function getOptionStdin(options?: CoerceOptions): string | undefined {
 }
 
 /**
+ * Checks whether items list has at least one element.
+ */
+function hasSyncItems(items?: (string | number)[]): boolean {
+  return Boolean(items && items.length > 0);
+}
+
+/**
  * Determines whether raw value represents a direct non-stdin-hyphen string.
  */
 function isDirectString(value: unknown): boolean {
@@ -172,6 +181,17 @@ function isNullish(value: unknown): boolean {
  */
 function isNumericList(items: (string | number)[]): boolean {
   return items.every((item) => typeof item === 'number');
+}
+
+/**
+ * Matches custom select value against items with numeric conversion if applicable.
+ */
+function matchCustomSelect(value: unknown, items: (string | number)[]): string | number {
+  const str = String(value);
+
+  if (items.map(String).includes(str)) return isNumericList(items) ? Number(value) : str;
+
+  return str;
 }
 
 /**

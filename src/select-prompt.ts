@@ -1,6 +1,7 @@
 import process from 'node:process';
 
 export interface SelectPromptOptions {
+  allowCustom?: boolean;
   input?: NodeJS.ReadableStream & { setRawMode?: (mode: boolean) => void };
   items: (string | number)[];
   output?: NodeJS.WritableStream;
@@ -121,6 +122,7 @@ function handleTypingKey(key: string, state: PromptState): boolean {
  */
 function initPromptState(options: SelectPromptOptions): PromptState {
   return {
+    allowCustom: options.allowCustom,
     filter: '',
     filtered: [...options.items],
     items: options.items,
@@ -214,6 +216,15 @@ function renderMenu(output: NodeJS.WritableStream, state: PromptState): void {
 }
 
 /**
+ * Resolves typed filter value as fallback choice when allowCustom is enabled.
+ */
+function resolveCustomFilter(state: PromptState): string | undefined {
+  if (state.allowCustom && state.filter.length > 0) return state.filter;
+
+  return undefined;
+}
+
+/**
  * Resolves streams with default fallbacks to process standard I/O.
  */
 function resolvePromptStreams(options: SelectPromptOptions): {
@@ -230,11 +241,13 @@ function resolvePromptStreams(options: SelectPromptOptions): {
  * Resolves current selected item or throws if filtered list is empty.
  */
 function resolveSelectedItem(state: PromptState): string | number {
-  if (state.filtered.length === 0) {
-    throw new Error(`No option matching filter: '${state.filter}'`);
-  }
+  if (state.filtered.length > 0) return state.filtered[state.selectedIndex];
 
-  return state.filtered[state.selectedIndex];
+  const customChoice = resolveCustomFilter(state);
+
+  if (customChoice !== undefined) return customChoice;
+
+  throw new Error(`No option matching filter: '${state.filter}'`);
 }
 
 /**
@@ -335,6 +348,7 @@ interface PromptController {
 }
 
 interface PromptState {
+  allowCustom?: boolean;
   filter: string;
   filtered: (string | number)[];
   items: (string | number)[];

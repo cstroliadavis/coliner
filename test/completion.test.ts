@@ -52,6 +52,19 @@ describe('completions', () => {
           ],
           triggers: 'build-triggered',
         },
+        {
+          description: 'Record work task',
+          name: 'add-task',
+          params: [
+            {
+              description: 'Task title or ticket',
+              items: ['Ticket-100', 'Ticket-200'],
+              name: 'task',
+              type: 'text',
+            },
+          ],
+          triggers: 'task-added',
+        },
       ],
       description: 'Test deployment CLI',
       name: 'deployer',
@@ -137,6 +150,27 @@ describe('completions', () => {
     const replicaChoices = resolveCompletions(config, ['deploy', '-r', '']);
 
     expect(replicaChoices.map((c) => c.value)).toEqual(['1', '3', '5']);
+  });
+
+  it('resolves completion suggestions for text parameters configured with items', () => {
+    const { config } = setup();
+
+    const taskChoices = resolveCompletions(config, ['add-task', '']);
+
+    expect(taskChoices.some((c) => c.value === 'Ticket-100')).toBe(true);
+    expect(taskChoices.some((c) => c.value === 'Ticket-200')).toBe(true);
+
+    const filteredChoices = resolveCompletions(config, ['add-task', 'Tick']);
+
+    expect(filteredChoices.map((c) => c.value)).toEqual(['Ticket-100', 'Ticket-200']);
+  });
+
+  it('accepts unlisted custom values for text parameters with items without throwing', async () => {
+    const { cli } = setup();
+
+    const result = await cli.execute(['add-task', 'Ticket-999-new']);
+
+    expect(result.params.task).toBe('Ticket-999-new');
   });
 
   it('generates shell completion scripts for bash, zsh, and fish', () => {

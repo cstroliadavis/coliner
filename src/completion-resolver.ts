@@ -23,10 +23,10 @@ function collectCommandOptions(cmd: CommandConfig): CompletionItem[] {
 }
 
 /**
- * Gathers positional parameter select completions for a command.
+ * Gathers positional parameter completions for a command.
  */
-function collectPositionalSelects(params: ParamConfig[] = []): CompletionItem[] {
-  return params.filter((p) => p.type === 'select').flatMap(selectItemsToCompletions);
+function collectPositionalItems(params: ParamConfig[] = []): CompletionItem[] {
+  return params.filter(hasParamItems).flatMap(paramItemsToCompletions);
 }
 
 /**
@@ -58,10 +58,10 @@ function getLastArg(rawArgs: string[]): string {
 }
 
 /**
- * Checks whether parameter is defined as select type.
+ * Checks whether parameter has items defined for suggestions.
  */
-function isSelectParam(param?: ParamConfig): boolean {
-  return param?.type === 'select';
+function hasParamItems(param?: ParamConfig): boolean {
+  return Boolean(param?.items && param.items.length > 0);
 }
 
 /**
@@ -102,6 +102,18 @@ function paramFlagsToCompletions(param: ParamConfig): CompletionItem[] {
 }
 
 /**
+ * Converts parameter items into completion suggestions.
+ */
+function paramItemsToCompletions(param: ParamConfig): CompletionItem[] {
+  return param.items
+    ? param.items.map((item) => ({
+        description: `Choice for ${param.name}`,
+        value: String(item),
+      }))
+    : [];
+}
+
+/**
  * Resolves flag value completions if previous token corresponds to a select flag.
  */
 function resolveFlagValueItems(
@@ -138,7 +150,7 @@ function resolveSubcommandCompletions(cmd: CommandConfig, rawArgs: string[]): Co
   if (flagValueItems) return flagValueItems;
 
   const options = collectCommandOptions(cmd);
-  const positionals = collectPositionalSelects(cmd.params);
+  const positionals = collectPositionalItems(cmd.params);
 
   return filterCompletions([...options, ...positionals], lastToken);
 }
@@ -149,19 +161,7 @@ function resolveSubcommandCompletions(cmd: CommandConfig, rawArgs: string[]): Co
 function resolveValueCompletion(prevToken: string, cmd: CommandConfig): CompletionItem[] | null {
   const param = matchParamByFlag(prevToken, cmd.params ?? []);
 
-  return isSelectParam(param) ? selectItemsToCompletions(param as ParamConfig) : null;
-}
-
-/**
- * Converts select parameter items into completion suggestions.
- */
-function selectItemsToCompletions(param: ParamConfig): CompletionItem[] {
-  return param.items
-    ? param.items.map((item) => ({
-        description: `Choice for ${param.name}`,
-        value: String(item),
-      }))
-    : [];
+  return hasParamItems(param) ? paramItemsToCompletions(param as ParamConfig) : null;
 }
 
 /**

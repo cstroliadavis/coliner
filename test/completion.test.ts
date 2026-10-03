@@ -65,6 +65,36 @@ describe('completions', () => {
           ],
           triggers: 'task-added',
         },
+        {
+          description: 'Sync dynamic items command',
+          name: 'sync-dynamic',
+          params: [
+            {
+              description: 'Dynamic items',
+              items: () => ['dynamic-alpha', 'dynamic-beta'],
+              name: 'item',
+              type: 'text',
+            },
+          ],
+          triggers: 'sync-dynamic-triggered',
+        },
+        {
+          description: 'Async dynamic items command',
+          name: 'async-dynamic',
+          params: [
+            {
+              description: 'Async dynamic items',
+              items: async () => {
+                await Promise.resolve();
+
+                return ['async-one', 'async-two'];
+              },
+              name: 'item',
+              type: 'text',
+            },
+          ],
+          triggers: 'async-dynamic-triggered',
+        },
       ],
       description: 'Test deployment CLI',
       name: 'deployer',
@@ -109,25 +139,25 @@ describe('completions', () => {
     // Teardown per unit-test-setup
   });
 
-  it('resolves root level command suggestions matching prefix', () => {
+  it('resolves root level command suggestions matching prefix', async () => {
     const { config } = setup();
 
-    const all = resolveCompletions(config, ['']);
+    const all = await resolveCompletions(config, ['']);
 
     expect(all.some((c) => c.value === 'deploy')).toBe(true);
     expect(all.some((c) => c.value === 'build')).toBe(true);
     expect(all.some((c) => c.value === '--help')).toBe(true);
 
-    const filtered = resolveCompletions(config, ['dep']);
+    const filtered = await resolveCompletions(config, ['dep']);
 
     expect(filtered).toHaveLength(1);
     expect(filtered[0]?.value).toBe('deploy');
   });
 
-  it('resolves command option flags and select items', () => {
+  it('resolves command option flags and select items', async () => {
     const { config } = setup();
 
-    const flags = resolveCompletions(config, ['deploy', '--']);
+    const flags = await resolveCompletions(config, ['deploy', '--']);
 
     expect(flags.some((c) => c.value === '--env')).toBe(true);
     expect(flags.some((c) => c.value === '--replicas')).toBe(true);
@@ -135,32 +165,32 @@ describe('completions', () => {
     expect(flags.some((c) => c.value === '--no-verbose')).toBe(true);
   });
 
-  it('resolves select parameter choice items following flag', () => {
+  it('resolves select parameter choice items following flag', async () => {
     const { config } = setup();
 
-    const envChoices = resolveCompletions(config, ['deploy', '--env', '']);
+    const envChoices = await resolveCompletions(config, ['deploy', '--env', '']);
 
     expect(envChoices.map((c) => c.value)).toEqual(['development', 'staging', 'production']);
 
-    const filteredEnv = resolveCompletions(config, ['deploy', '--env', 'prod']);
+    const filteredEnv = await resolveCompletions(config, ['deploy', '--env', 'prod']);
 
     expect(filteredEnv).toHaveLength(1);
     expect(filteredEnv[0]?.value).toBe('production');
 
-    const replicaChoices = resolveCompletions(config, ['deploy', '-r', '']);
+    const replicaChoices = await resolveCompletions(config, ['deploy', '-r', '']);
 
     expect(replicaChoices.map((c) => c.value)).toEqual(['1', '3', '5']);
   });
 
-  it('resolves completion suggestions for text parameters configured with items', () => {
+  it('resolves completion suggestions for text parameters configured with items', async () => {
     const { config } = setup();
 
-    const taskChoices = resolveCompletions(config, ['add-task', '']);
+    const taskChoices = await resolveCompletions(config, ['add-task', '']);
 
     expect(taskChoices.some((c) => c.value === 'Ticket-100')).toBe(true);
     expect(taskChoices.some((c) => c.value === 'Ticket-200')).toBe(true);
 
-    const filteredChoices = resolveCompletions(config, ['add-task', 'Tick']);
+    const filteredChoices = await resolveCompletions(config, ['add-task', 'Tick']);
 
     expect(filteredChoices.map((c) => c.value)).toEqual(['Ticket-100', 'Ticket-200']);
   });
@@ -171,6 +201,40 @@ describe('completions', () => {
     const result = await cli.execute(['add-task', 'Ticket-999-new']);
 
     expect(result.params.task).toBe('Ticket-999-new');
+  });
+
+  it('resolves dynamic completion items returned by a sync function provider', async () => {
+    const { config } = setup();
+
+    const choices = await resolveCompletions(config, ['sync-dynamic', '']);
+
+    expect(choices.some((c) => c.value === 'dynamic-alpha')).toBe(true);
+    expect(choices.some((c) => c.value === 'dynamic-beta')).toBe(true);
+  });
+
+  it('resolves dynamic completion items returned by an async function provider', async () => {
+    const { config } = setup();
+
+    const choices = await resolveCompletions(config, ['async-dynamic', '']);
+
+    expect(choices.some((c) => c.value === 'async-one')).toBe(true);
+    expect(choices.some((c) => c.value === 'async-two')).toBe(true);
+  });
+
+  it('executes dynamic completion queries with async provider through CLI complete subcommand', async () => {
+    const { cli } = setup();
+
+    const result = await cli.execute([
+      'completion',
+      'complete',
+      'zsh',
+      '--',
+      'async-dynamic',
+      'async-o',
+    ]);
+
+    expect(result.triggers).toBe('completion');
+    expect(String(result.params.output)).toContain('async-one');
   });
 
   it('generates shell completion scripts for bash, zsh, and fish', () => {

@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import type { ParamConfig } from './types.js';
+import type { ParamConfig, ParamItems } from './types.js';
 
 /**
  * Options for customizing parameter coercion behavior.
@@ -86,9 +86,9 @@ function coerceNumber(value: unknown, paramName: string): number {
  * Validates and converts select parameters matching defined choice items.
  */
 function coerceSelect(value: unknown, param: ParamConfig): string | number {
-  if (param.items && param.items.length > 0) {
-    return dispatchSelectMatch(value, param.items, param.name);
-  }
+  const items = extractSyncSelectItems(param.items);
+
+  if (items && items.length > 0) return dispatchSelectMatch(value, items, param.name);
 
   return String(value);
 }
@@ -135,6 +135,15 @@ function dispatchValue(param: ParamConfig, rawValue: unknown, ctx: CoerceContext
   const handler = TYPE_COERCERS[param.type];
 
   return handler ? handler(ctx) : String(rawValue);
+}
+
+/**
+ * Extracts optional choice items synchronously from a ParamItems definition.
+ */
+function extractSyncSelectItems(items?: ParamItems): (string | number)[] | undefined {
+  const raw = resolveRawSyncItems(items);
+
+  return Array.isArray(raw) ? raw : undefined;
 }
 
 /**
@@ -240,6 +249,15 @@ function resolveDefaultValue(param: ParamConfig): unknown {
   if (param.type === 'flag') return false;
 
   return undefined;
+}
+
+/**
+ * Resolves raw choice item output synchronously from static list or item provider function.
+ */
+function resolveRawSyncItems(items?: ParamItems): unknown {
+  if (typeof items === 'function') return items();
+
+  return items;
 }
 
 /**

@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import YAML from 'yaml';
-import type { CliConfig, CommandConfig, ParamConfig, ParamType } from './types.js';
+import type { CliConfig, CommandConfig, ParamConfig, ParamItems, ParamType } from './types.js';
 
 const VALID_PARAM_TYPES: ParamType[] = [
   'date',
@@ -65,9 +65,11 @@ function findDefaultCandidate(cwd: string): string | undefined {
 }
 
 /**
- * Checks if parameter provides a non-empty array of items.
+ * Checks if parameter provides a non-empty array of items or an item provider.
  */
-function hasValidItems(items?: (string | number)[]): boolean {
+function hasValidItems(items?: ParamItems): boolean {
+  if (typeof items === 'function') return true;
+
   return Array.isArray(items) && items.length > 0;
 }
 

@@ -1,4 +1,4 @@
-import type { CliConfig, CommandConfig, CompletionItem, ParamConfig } from './types.js';
+import type { CliConfig, CommandConfig, CompletionItem, ParamConfig, ParamItems } from './types.js';
 
 const GLOBAL_COMPLETIONS: CompletionItem[] = [
   { description: 'Path to configuration file', value: '--config' },
@@ -25,8 +25,17 @@ function collectCommandOptions(cmd: CommandConfig): CompletionItem[] {
 /**
  * Gathers positional parameter completions for a command.
  */
-function collectPositionalItems(params: ParamConfig[] = []): CompletionItem[] {
-  return params.filter(hasParamItems).flatMap(paramItemsToCompletions);
+async function collectPositionalItems(params: ParamConfig[] = []): Promise<CompletionItem[]> {
+  const candidates = params.filter(hasParamItems);
+  const result: CompletionItem[] = [];
+
+  for (const param of candidates) {
+    const items = await paramItemsToCompletions(param);
+
+    result.push(...items);
+  }
+
+  return result;
 }
 
 /**
@@ -37,6 +46,15 @@ function commandToCompletion(cmd: CommandConfig): CompletionItem {
     description: cmd.description ?? `Execute ${cmd.name}`,
     value: cmd.name,
   };
+}
+
+/**
+ * Resolves parameter choice items asynchronously from parameter configuration.
+ */
+async function extractParamItems(param: ParamConfig): Promise<(string | number)[]> {
+  const raw = await resolveRawItems(param.items);
+
+  return Array.isArray(raw) ? raw : [];
 }
 
 /**
@@ -61,7 +79,18 @@ function getLastArg(rawArgs: string[]): string {
  * Checks whether parameter has items defined for suggestions.
  */
 function hasParamItems(param?: ParamConfig): boolean {
-  return Boolean(param?.items && param.items.length > 0);
+  if (!param) return false;
+
+  return hasValidParamItems(param.items);
+}
+
+/**
+ * Validates whether candidate items collection contains valid choices.
+ */
+function hasValidParamItems(items?: ParamItems): boolean {
+  if (typeof items === 'function') return true;
+
+  return Array.isArray(items) && items.length > 0;
 }
 
 /**
@@ -104,30 +133,39 @@ function paramFlagsToCompletions(param: ParamConfig): CompletionItem[] {
 /**
  * Converts parameter items into completion suggestions.
  */
-function paramItemsToCompletions(param: ParamConfig): CompletionItem[] {
-  return param.items
-    ? param.items.map((item) => ({
-        description: `Choice for ${param.name}`,
-        value: String(item),
-      }))
-    : [];
+async function paramItemsToCompletions(param: ParamConfig): Promise<CompletionItem[]> {
+  const items = await extractParamItems(param);
+
+  return items.map((item) => ({
+    description: `Choice for ${param.name}`,
+    value: String(item),
+  }));
 }
 
 /**
  * Resolves flag value completions if previous token corresponds to a select flag.
  */
-function resolveFlagValueItems(
+async function resolveFlagValueItems(
   prevToken: string | undefined,
   cmd: CommandConfig,
   lastToken: string,
-): CompletionItem[] | null {
+): Promise<CompletionItem[] | null> {
   if (!prevToken) return null;
 
-  const valueItems = resolveValueCompletion(prevToken, cmd);
+  const valueItems = await resolveValueCompletion(prevToken, cmd);
 
   if (valueItems) return filterCompletions(valueItems, lastToken);
 
   return null;
+}
+
+/**
+ * Resolves raw item candidate output from static list or item provider function.
+ */
+async function resolveRawItems(items?: ParamItems): Promise<unknown> {
+  if (typeof items === 'function') return items();
+
+  return items;
 }
 
 /**
@@ -143,14 +181,17 @@ function resolveRootCompletions(config: CliConfig, prefix: string): CompletionIt
 /**
  * Resolves completions when user is within a specific command context.
  */
-function resolveSubcommandCompletions(cmd: CommandConfig, rawArgs: string[]): CompletionItem[] {
+async function resolveSubcommandCompletions(
+  cmd: CommandConfig,
+  rawArgs: string[],
+): Promise<CompletionItem[]> {
   const lastToken = rawArgs[rawArgs.length - 1] || '';
-  const flagValueItems = resolveFlagValueItems(rawArgs[rawArgs.length - 2], cmd, lastToken);
+  const flagValueItems = await resolveFlagValueItems(rawArgs[rawArgs.length - 2], cmd, lastToken);
 
   if (flagValueItems) return flagValueItems;
 
   const options = collectCommandOptions(cmd);
-  const positionals = collectPositionalItems(cmd.params);
+  const positionals = await collectPositionalItems(cmd.params);
 
   return filterCompletions([...options, ...positionals], lastToken);
 }
@@ -158,7 +199,10 @@ function resolveSubcommandCompletions(cmd: CommandConfig, rawArgs: string[]): Co
 /**
  * Resolves completions for parameter values if previous token was an option flag.
  */
-function resolveValueCompletion(prevToken: string, cmd: CommandConfig): CompletionItem[] | null {
+async function resolveValueCompletion(
+  prevToken: string,
+  cmd: CommandConfig,
+): Promise<CompletionItem[] | null> {
   const param = matchParamByFlag(prevToken, cmd.params ?? []);
 
   return hasParamItems(param) ? paramItemsToCompletions(param as ParamConfig) : null;
@@ -172,11 +216,14 @@ function resolveValueCompletion(prevToken: string, cmd: CommandConfig): Completi
  * @returns Array of completion suggestions
  * @example
  * ```ts
- * const completions = resolveCompletions(config, ['deploy', '--env']);
+ * const completions = await resolveCompletions(config, ['deploy', '--env']);
  * // Returns completions matching select items for --env
  * ```
  */
-export function resolveCompletions(config: CliConfig, rawArgs: string[]): CompletionItem[] {
+export async function resolveCompletions(
+  config: CliConfig,
+  rawArgs: string[],
+): Promise<CompletionItem[]> {
   if (rawArgs.length <= 1) return resolveRootCompletions(config, getLastArg(rawArgs));
 
   const cmd = config.commands.find((c) => c.name === rawArgs[0]);

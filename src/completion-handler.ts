@@ -46,9 +46,12 @@ function extractCompletionTokens(args: string[]): {
 /**
  * Executes dynamic completion query for shell integrations.
  */
-function handleCompleteSubcommand(args: string[], config: CliConfig): ParsedCommandResult {
+async function handleCompleteSubcommand(
+  args: string[],
+  config: CliConfig,
+): Promise<ParsedCommandResult> {
   const { shell, tokens } = extractCompletionTokens(args);
-  const items = resolveCompletions(config, tokens);
+  const items = await resolveCompletions(config, tokens);
   const output = formatCompletionsForShell(items, shell);
 
   if (output.length > 0) {
@@ -120,7 +123,10 @@ function renderCompletionHelp(cliName: string): string {
  * const result = handleCompletionCommand(['completion', 'bash'], config);
  * ```
  */
-export function handleCompletionCommand(args: string[], config: CliConfig): ParsedCommandResult {
+export async function handleCompletionCommand(
+  args: string[],
+  config: CliConfig,
+): Promise<ParsedCommandResult> {
   const sub = args[1];
 
   if (sub === 'complete') return handleCompleteSubcommand(args, config);

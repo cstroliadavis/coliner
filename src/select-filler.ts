@@ -1,6 +1,6 @@
 import process from 'node:process';
 import { promptSelect } from './select-prompt.js';
-import type { ParamConfig, ParsedCommandResult } from './types.js';
+import type { ParamConfig, ParamItems, ParsedCommandResult } from './types.js';
 
 interface PromptStreams {
   input?: NodeJS.ReadableStream & { setRawMode?: (mode: boolean) => void };
@@ -18,6 +18,15 @@ interface PromptContext {
 }
 
 /**
+ * Resolves select choice items asynchronously from a ParamItems definition.
+ */
+async function extractSelectItems(items?: ParamItems): Promise<(string | number)[]> {
+  const raw = await resolveRawItems(items);
+
+  return Array.isArray(raw) ? raw : [];
+}
+
+/**
  * Filters command parameters returning list of unsupplied select parameters.
  */
 function getMissingSelectParams(
@@ -28,9 +37,11 @@ function getMissingSelectParams(
 }
 
 /**
- * Checks whether items list has at least one element.
+ * Checks whether items list has at least one element or is an item provider.
  */
-function hasItems(items?: (string | number)[]): boolean {
+function hasItems(items?: ParamItems): boolean {
+  if (typeof items === 'function') return true;
+
   return Boolean(items && items.length > 0);
 }
 
@@ -61,9 +72,10 @@ async function promptAllMissing(missing: ParamConfig[], ctx: PromptContext): Pro
  * Prompts user for a single select parameter and coerces chosen value.
  */
 async function promptAndAssignSelect(param: ParamConfig, ctx: PromptContext): Promise<void> {
+  const items = await extractSelectItems(param.items);
   const chosen = await promptSelect({
     input: ctx.streams.input,
-    items: param.items ?? [],
+    items,
     output: ctx.streams.output,
     paramName: param.name,
   });
@@ -85,6 +97,15 @@ function resolveInput(
  */
 function resolveOutput(streams?: PromptStreams): NodeJS.WritableStream {
   return streams?.output ?? process.stdout;
+}
+
+/**
+ * Resolves raw choice item output asynchronously from static list or item provider function.
+ */
+async function resolveRawItems(items?: ParamItems): Promise<unknown> {
+  if (typeof items === 'function') return items();
+
+  return items;
 }
 
 /**

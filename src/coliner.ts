@@ -43,10 +43,10 @@ function buildHelpResult(
 /**
  * Checks for built-in completion or help trigger flags and returns synthetic result.
  */
-function checkSpecialCommands(
+async function checkSpecialCommands(
   opts: NormalizedExecutionOptions,
   context: ColinerContext,
-): ParsedCommandResult | null {
+): Promise<ParsedCommandResult | null> {
   if (isCompletionCommand(opts.args, context.config.commands)) {
     return handleCompletionCommand(opts.args, context.config);
   }
@@ -70,7 +70,7 @@ async function executeWorkflow(
   options?: ExecutionOptions | string[],
 ): Promise<ParsedCommandResult> {
   const opts = normalizeOptions(options);
-  const specialResult = checkSpecialCommands(opts, context);
+  const specialResult = await checkSpecialCommands(opts, context);
 
   if (specialResult) return specialResult;
 

@@ -10,6 +10,16 @@ export type ParamType =
 export type CompletionShell = 'bash' | 'fish' | 'zsh';
 
 /**
+ * Dynamic candidate item provider function for completion suggestions.
+ */
+export type ItemProvider = () => (string | number)[] | Promise<(string | number)[]>;
+
+/**
+ * Static or dynamic candidate choices for command parameters.
+ */
+export type ParamItems = (string | number)[] | ItemProvider;
+
+/**
  * Configuration schema for an individual command parameter.
  */
 export interface ParamConfig {
@@ -25,8 +35,8 @@ export interface ParamConfig {
   /** Indicates if this parameter serves as the primary positional argument. */
   isDefault?: boolean;
 
-  /** Available options or choices for 'select' parameter type. */
-  items?: (string | number)[];
+  /** Available options or choices for parameter type or suggestions. */
+  items?: ParamItems;
 
   /** Unique name identifier for the parameter. */
   name: string;
@@ -210,9 +220,9 @@ export interface ColinerInstance {
    * Resolves completion suggestions for the provided argument list.
    *
    * @param args Current command line argument tokens
-   * @returns Array of completion suggestions
+   * @returns Promise resolving to array of completion suggestions
    */
-  getCompletions: (args: string[]) => CompletionItem[];
+  getCompletions: (args: string[]) => Promise<CompletionItem[]>;
 
   /**
    * Retrieves the active CLI configuration.

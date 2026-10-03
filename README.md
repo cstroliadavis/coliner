@@ -13,11 +13,13 @@ type coercion, and smart named-first positional argument assignment.
   first, followed by assigning remaining positional tokens to unfilled parameters in order of
   definition.
 - **Rich Parameter Types**: Built-in validation and coercion for `text`, `keyword`, `flag`, `date`,
-  `number`, `file`, `stdin`, `url`, and `select`.
+  `number`, `file`, `stdin`, `time`, `url`, and `select`.
 - **Interactive Select Prompts**: `select` parameters provide an interactive, type-to-filter menu
-  with arrow-key selection in interactive TTY terminals when omitted.
+  with arrow-key selection in interactive TTY terminals when omitted. Set `allowCustom: true` to
+  accept arbitrary custom values.
 - **Shell Tab Completions**: Native script generation and dynamic completion lookup for **Bash**,
-  **Zsh**, and **Fish** supporting commands, options, and `select` choices.
+  **Zsh**, and **Fish** supporting commands, options, `select` choices, `text` suggestions, and
+  dynamic function providers.
 - **Event-Driven Execution**: Each command declares a `triggers` event name that dispatches parsed
   parameters to registered listeners.
 - **Single & Multi-Character Aliases**: Single-letter flags can be chained (`-abc`), and
@@ -38,8 +40,9 @@ commands:
     params:
       - name: kebab-case-param-name
         description: A helpful description to show in help
-        type: select # "text" | "keyword" | "flag" | "date" | "number" | "file" | "stdin" | "url" | "select"
-        items: [dev, staging, prod] # Required for "select"
+        type: select # "text" | "keyword" | "flag" | "date" | "number" | "file" | "stdin" | "time" | "url" | "select"
+        items: [dev, staging, prod] # Choices for "select" or suggestions for "text"
+        allowCustom: true # Optional: allows custom unlisted values for "select"
         negator: true # Optional: enables --no-<name>
         default: fallback-value # Optional
         alias: [a, alias-name] # Optional: single letter or multi-character string
@@ -49,15 +52,16 @@ commands:
 
 | Type      | Coerced Value      | Description & Validation                                         |
 | :-------- | :----------------- | :--------------------------------------------------------------- |
-| `text`    | `string`           | General string value.                                            |
+| `text`    | `string`           | General string; accepts optional `items` for tab completions.    |
 | `keyword` | `string`           | Alphanumeric or kebab-case identifier (`/^[a-zA-Z0-9_\-]+$/`).   |
 | `flag`    | `boolean`          | `true` if supplied without value; accepts true/false/yes/no.     |
 | `date`    | `Date`             | JavaScript Date instance; validated with `!isNaN(getTime())`.    |
 | `number`  | `number`           | Numeric float or integer; validated with `!isNaN(Number(val))`.  |
 | `file`    | `string`           | Validated filesystem path; verifies existence synchronously.     |
 | `stdin`   | `string`           | Input read from process standard input stream or passed content. |
+| `time`    | `string`           | 24-hr time (`HH:MM`); accepts 24h (`14:30`) or 12h (`2:30pm`).   |
 | `url`     | `URL`              | Validated WHATWG URL instance (`new URL(val)`).                  |
-| `select`  | `string \| number` | Item from `items` list; prompts interactively in TTY if omitted. |
+| `select`  | `string \| number` | Item from `items` list; accepts custom input when `allowCustom`. |
 
 ## Shell Tab Completions
 
@@ -153,6 +157,10 @@ Generated completion scripts dynamically delegate to your CLI:
 - **Root Level**: Suggests all commands and global options (`--help`, `--config`).
 - **Command Flags**: Suggests all flags, short aliases, and inverted `--no-<flag>` negators.
 - **Select Parameters**: Suggests all valid `items` choices when typing options or positional values.
+- **Text Parameter Suggestions**: Suggests `items` defined on `text` parameters while still accepting
+  arbitrary values.
+- **Dynamic Item Providers**: `items` can be specified as a sync or async function returning an array
+  of values (e.g. querying tasks or records dynamically).
 
 ## Positional and Named Assignment Rules
 

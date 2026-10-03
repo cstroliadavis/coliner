@@ -21,11 +21,13 @@ clear configuration file.</li>
 first, followed by assigning remaining positional tokens to unfilled parameters in order of
 definition.</li>
 <li><strong>Rich Parameter Types</strong>: Built-in validation and coercion for <code>text</code>, <code>keyword</code>, <code>flag</code>, <code>date</code>,
-<code>number</code>, <code>file</code>, <code>stdin</code>, <code>url</code>, and <code>select</code>.</li>
+<code>number</code>, <code>file</code>, <code>stdin</code>, <code>time</code>, <code>url</code>, and <code>select</code>.</li>
 <li><strong>Interactive Select Prompts</strong>: <code>select</code> parameters provide an interactive, type-to-filter menu
-with arrow-key selection in interactive TTY terminals when omitted.</li>
+with arrow-key selection in interactive TTY terminals when omitted. Set <code>allowCustom: true</code> to
+accept arbitrary custom values.</li>
 <li><strong>Shell Tab Completions</strong>: Native script generation and dynamic completion lookup for <strong>Bash</strong>,
-<strong>Zsh</strong>, and <strong>Fish</strong> supporting commands, options, and <code>select</code> choices.</li>
+<strong>Zsh</strong>, and <strong>Fish</strong> supporting commands, options, <code>select</code> choices, <code>text</code> suggestions, and
+dynamic function providers.</li>
 <li><strong>Event-Driven Execution</strong>: Each command declares a <code>triggers</code> event name that dispatches parsed
 parameters to registered listeners.</li>
 <li><strong>Single &amp; Multi-Character Aliases</strong>: Single-letter flags can be chained (<code>-abc</code>), and
@@ -36,7 +38,7 @@ multi-character aliases require <code>--</code>.</li>
 descriptions, defaults, and type hints.</li>
 </ul>
 <h2 id="schema" class="tsd-anchor-link">Schema<a href="#schema" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
-<pre><code class="yaml"><span class="hl-0">commands</span><span class="hl-1">:</span><br/><span class="hl-1">  - </span><span class="hl-0">name</span><span class="hl-1">: </span><span class="hl-2">kebab-case-command-name</span><br/><span class="hl-1">    </span><span class="hl-0">description</span><span class="hl-1">: </span><span class="hl-2">A helpful description to show if the &quot;help&quot; command is made</span><br/><span class="hl-1">    </span><span class="hl-0">isDefault</span><span class="hl-1">: </span><span class="hl-3">true</span><span class="hl-1"> </span><span class="hl-4"># Optional: command to invoke when none is specified</span><br/><span class="hl-1">    </span><span class="hl-0">triggers</span><span class="hl-1">: </span><span class="hl-2">event-name-to-trigger</span><br/><span class="hl-1">    </span><span class="hl-0">params</span><span class="hl-1">:</span><br/><span class="hl-1">      - </span><span class="hl-0">name</span><span class="hl-1">: </span><span class="hl-2">kebab-case-param-name</span><br/><span class="hl-1">        </span><span class="hl-0">description</span><span class="hl-1">: </span><span class="hl-2">A helpful description to show in help</span><br/><span class="hl-1">        </span><span class="hl-0">type</span><span class="hl-1">: </span><span class="hl-2">select</span><span class="hl-1"> </span><span class="hl-4"># &quot;text&quot; | &quot;keyword&quot; | &quot;flag&quot; | &quot;date&quot; | &quot;number&quot; | &quot;file&quot; | &quot;stdin&quot; | &quot;url&quot; | &quot;select&quot;</span><br/><span class="hl-1">        </span><span class="hl-0">items</span><span class="hl-1">: [</span><span class="hl-2">dev</span><span class="hl-1">, </span><span class="hl-2">staging</span><span class="hl-1">, </span><span class="hl-2">prod</span><span class="hl-1">] </span><span class="hl-4"># Required for &quot;select&quot;</span><br/><span class="hl-1">        </span><span class="hl-0">negator</span><span class="hl-1">: </span><span class="hl-3">true</span><span class="hl-1"> </span><span class="hl-4"># Optional: enables --no-&lt;name&gt;</span><br/><span class="hl-1">        </span><span class="hl-0">default</span><span class="hl-1">: </span><span class="hl-2">fallback-value</span><span class="hl-1"> </span><span class="hl-4"># Optional</span><br/><span class="hl-1">        </span><span class="hl-0">alias</span><span class="hl-1">: [</span><span class="hl-2">a</span><span class="hl-1">, </span><span class="hl-2">alias-name</span><span class="hl-1">] </span><span class="hl-4"># Optional: single letter or multi-character string</span>
+<pre><code class="yaml"><span class="hl-0">commands</span><span class="hl-1">:</span><br/><span class="hl-1">  - </span><span class="hl-0">name</span><span class="hl-1">: </span><span class="hl-2">kebab-case-command-name</span><br/><span class="hl-1">    </span><span class="hl-0">description</span><span class="hl-1">: </span><span class="hl-2">A helpful description to show if the &quot;help&quot; command is made</span><br/><span class="hl-1">    </span><span class="hl-0">isDefault</span><span class="hl-1">: </span><span class="hl-3">true</span><span class="hl-1"> </span><span class="hl-4"># Optional: command to invoke when none is specified</span><br/><span class="hl-1">    </span><span class="hl-0">triggers</span><span class="hl-1">: </span><span class="hl-2">event-name-to-trigger</span><br/><span class="hl-1">    </span><span class="hl-0">params</span><span class="hl-1">:</span><br/><span class="hl-1">      - </span><span class="hl-0">name</span><span class="hl-1">: </span><span class="hl-2">kebab-case-param-name</span><br/><span class="hl-1">        </span><span class="hl-0">description</span><span class="hl-1">: </span><span class="hl-2">A helpful description to show in help</span><br/><span class="hl-1">        </span><span class="hl-0">type</span><span class="hl-1">: </span><span class="hl-2">select</span><span class="hl-1"> </span><span class="hl-4"># &quot;text&quot; | &quot;keyword&quot; | &quot;flag&quot; | &quot;date&quot; | &quot;number&quot; | &quot;file&quot; | &quot;stdin&quot; | &quot;time&quot; | &quot;url&quot; | &quot;select&quot;</span><br/><span class="hl-1">        </span><span class="hl-0">items</span><span class="hl-1">: [</span><span class="hl-2">dev</span><span class="hl-1">, </span><span class="hl-2">staging</span><span class="hl-1">, </span><span class="hl-2">prod</span><span class="hl-1">] </span><span class="hl-4"># Choices for &quot;select&quot; or suggestions for &quot;text&quot;</span><br/><span class="hl-1">        </span><span class="hl-0">allowCustom</span><span class="hl-1">: </span><span class="hl-3">true</span><span class="hl-1"> </span><span class="hl-4"># Optional: allows custom unlisted values for &quot;select&quot;</span><br/><span class="hl-1">        </span><span class="hl-0">negator</span><span class="hl-1">: </span><span class="hl-3">true</span><span class="hl-1"> </span><span class="hl-4"># Optional: enables --no-&lt;name&gt;</span><br/><span class="hl-1">        </span><span class="hl-0">default</span><span class="hl-1">: </span><span class="hl-2">fallback-value</span><span class="hl-1"> </span><span class="hl-4"># Optional</span><br/><span class="hl-1">        </span><span class="hl-0">alias</span><span class="hl-1">: [</span><span class="hl-2">a</span><span class="hl-1">, </span><span class="hl-2">alias-name</span><span class="hl-1">] </span><span class="hl-4"># Optional: single letter or multi-character string</span>
 </code><button type="button">Copy</button></pre>
 
 <h3 id="parameter-types" class="tsd-anchor-link">Parameter Types<a href="#parameter-types" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
@@ -52,7 +54,7 @@ descriptions, defaults, and type hints.</li>
 <tr>
 <td style="text-align:left"><code>text</code></td>
 <td style="text-align:left"><code>string</code></td>
-<td style="text-align:left">General string value.</td>
+<td style="text-align:left">General string; accepts optional <code>items</code> for tab completions.</td>
 </tr>
 <tr>
 <td style="text-align:left"><code>keyword</code></td>
@@ -85,6 +87,11 @@ descriptions, defaults, and type hints.</li>
 <td style="text-align:left">Input read from process standard input stream or passed content.</td>
 </tr>
 <tr>
+<td style="text-align:left"><code>time</code></td>
+<td style="text-align:left"><code>string</code></td>
+<td style="text-align:left">24-hr time (<code>HH:MM</code>); accepts 24h (<code>14:30</code>) or 12h (<code>2:30pm</code>).</td>
+</tr>
+<tr>
 <td style="text-align:left"><code>url</code></td>
 <td style="text-align:left"><code>URL</code></td>
 <td style="text-align:left">Validated WHATWG URL instance (<code>new URL(val)</code>).</td>
@@ -92,7 +99,7 @@ descriptions, defaults, and type hints.</li>
 <tr>
 <td style="text-align:left"><code>select</code></td>
 <td style="text-align:left"><code>string | number</code></td>
-<td style="text-align:left">Item from <code>items</code> list; prompts interactively in TTY if omitted.</td>
+<td style="text-align:left">Item from <code>items</code> list; accepts custom input when <code>allowCustom</code>.</td>
 </tr>
 </tbody>
 </table>
@@ -146,6 +153,10 @@ There is no boilerplate or custom completion code required in your application l
 <li><strong>Root Level</strong>: Suggests all commands and global options (<code>--help</code>, <code>--config</code>).</li>
 <li><strong>Command Flags</strong>: Suggests all flags, short aliases, and inverted <code>--no-&lt;flag&gt;</code> negators.</li>
 <li><strong>Select Parameters</strong>: Suggests all valid <code>items</code> choices when typing options or positional values.</li>
+<li><strong>Text Parameter Suggestions</strong>: Suggests <code>items</code> defined on <code>text</code> parameters while still accepting
+arbitrary values.</li>
+<li><strong>Dynamic Item Providers</strong>: <code>items</code> can be specified as a sync or async function returning an array
+of values (e.g. querying tasks or records dynamically).</li>
 </ul>
 <h2 id="positional-and-named-assignment-rules" class="tsd-anchor-link">Positional and Named Assignment Rules<a href="#positional-and-named-assignment-rules" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <p>Named parameters are extracted first. All remaining unnamed positional tokens are assigned to the

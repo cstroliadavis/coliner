@@ -1,3 +1,4 @@
+export { coerceTime } from './time-coercer.js';
 export { createArgParser } from './arg-parser.js';
 export { createColiner } from './coliner.js';
 export { formatCompletionsForShell, generateCompletionScript } from './completion-generator.js';
@@ -18,7 +19,9 @@ export type {
   EventHandler,
   ExecutionOptions,
   HelpDetection,
+  ItemProvider,
   ParamConfig,
+  ParamItems,
   ParamLookups,
   ParamType,
   ParsedCommandResult,

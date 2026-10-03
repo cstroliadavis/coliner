@@ -94,3 +94,26 @@ commands:
           - 1
           - 3
           - 5
+
+  - name: log-event
+    description: Record a scheduled event
+    triggers: event-logged
+    params:
+      - name: task
+        description: Task description with tab completion suggestions
+        type: text
+        items:
+          - Meeting
+          - Development
+          - Code Review
+      - name: start
+        description: Start time (e.g. 09:30 or 2:15pm)
+        type: time
+      - name: category
+        description: Event category
+        type: select
+        allowCustom: true
+        items:
+          - Work
+          - Personal
+          - Administrative

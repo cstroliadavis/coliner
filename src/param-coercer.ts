@@ -123,9 +123,9 @@ function dispatchSelectMatch(
   items: (string | number)[],
   name: string,
 ): string | number {
-  if (isNumericList(items)) return matchNumberSelect(value, items, name);
-
-  return matchStringSelect(value, items, name);
+  return isNumericList(items)
+    ? matchNumberSelect(value, items, name)
+    : matchStringSelect(value, items, name);
 }
 
 /**
@@ -134,18 +134,14 @@ function dispatchSelectMatch(
 function dispatchValue(param: ParamConfig, rawValue: unknown, ctx: CoerceContext): unknown {
   const handler = TYPE_COERCERS[param.type];
 
-  if (handler) return handler(ctx);
-
-  return String(rawValue);
+  return handler ? handler(ctx) : String(rawValue);
 }
 
 /**
  * Extracts optional standard input content from coercion options.
  */
 function getOptionStdin(options?: CoerceOptions): string | undefined {
-  if (!options) return undefined;
-
-  return options.stdinContent;
+  return options ? options.stdinContent : undefined;
 }
 
 /**
@@ -221,12 +217,10 @@ function readStdinSync(): string {
  * Resolves working directory with fallback to default directory.
  */
 function resolveCwd(defaultCwd: string, options?: CoerceOptions): string {
-  if (options && options.cwd) return options.cwd;
-
-  return defaultCwd;
+  return options?.cwd ?? defaultCwd;
 }
 
-const TYPE_COERCERS: Record<string, CoercerFn> = {
+const TYPE_COERCERS: Record<string, CoercerFn | undefined> = {
   date: (ctx) => coerceDate(ctx.rawValue, ctx.param.name),
   file: (ctx) => coerceFile(ctx.rawValue, ctx.param.name, ctx.cwd),
   flag: (ctx) => coerceFlag(ctx.rawValue, ctx.param.name),

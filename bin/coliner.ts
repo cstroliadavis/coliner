@@ -31,9 +31,7 @@ function parseConfigFlag(argv: string[], index: number): { path?: string; step: 
 
   if (isConfigAlias(arg)) return { path: argv[index + 1], step: 2 };
 
-  if (arg.startsWith('--config=')) return { path: arg.slice('--config='.length), step: 1 };
-
-  return null;
+  return arg.startsWith('--config=') ? { path: arg.slice('--config='.length), step: 1 } : null;
 }
 
 /**

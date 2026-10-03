@@ -21,11 +21,9 @@ interface PromptContext {
  * Filters command parameters returning list of unsupplied select parameters.
  */
 function getMissingSelectParams(
-  commandParams: ParamConfig[] | undefined,
+  commandParams: ParamConfig[] = [],
   values: Record<string, unknown>,
 ): ParamConfig[] {
-  if (!commandParams) return [];
-
   return commandParams.filter((p) => isMissingSelect(p, values[p.name]));
 }
 
@@ -33,29 +31,21 @@ function getMissingSelectParams(
  * Checks whether items list has at least one element.
  */
 function hasItems(items?: (string | number)[]): boolean {
-  if (!items) return false;
-
-  return items.length > 0;
+  return Boolean(items && items.length > 0);
 }
 
 /**
  * Checks whether readable stream supports interactive terminal operations.
  */
 function isInteractiveStream(stream?: NodeJS.ReadableStream): boolean {
-  if (!stream) return false;
-
-  return Boolean('isTTY' in stream && stream.isTTY);
+  return Boolean(stream && 'isTTY' in stream && stream.isTTY);
 }
 
 /**
  * Checks whether parameter represents an unfilled select choice.
  */
 function isMissingSelect(param: ParamConfig, value: unknown): boolean {
-  if (param.type !== 'select') return false;
-
-  if (value !== undefined) return false;
-
-  return hasItems(param.items);
+  return param.type === 'select' && value === undefined && hasItems(param.items);
 }
 
 /**
@@ -73,7 +63,7 @@ async function promptAllMissing(missing: ParamConfig[], ctx: PromptContext): Pro
 async function promptAndAssignSelect(param: ParamConfig, ctx: PromptContext): Promise<void> {
   const chosen = await promptSelect({
     input: ctx.streams.input,
-    items: param.items || [],
+    items: param.items ?? [],
     output: ctx.streams.output,
     paramName: param.name,
   });
@@ -87,18 +77,14 @@ async function promptAndAssignSelect(param: ParamConfig, ctx: PromptContext): Pr
 function resolveInput(
   streams?: PromptStreams,
 ): NodeJS.ReadableStream & { setRawMode?: (mode: boolean) => void } {
-  if (streams && streams.input) return streams.input;
-
-  return process.stdin;
+  return streams?.input ?? process.stdin;
 }
 
 /**
  * Resolves output stream with default to process.stdout.
  */
 function resolveOutput(streams?: PromptStreams): NodeJS.WritableStream {
-  if (streams && streams.output) return streams.output;
-
-  return process.stdout;
+  return streams?.output ?? process.stdout;
 }
 
 /**

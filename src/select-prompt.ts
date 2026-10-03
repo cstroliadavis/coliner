@@ -66,9 +66,7 @@ function finalizeSelection(
  * Formats a single menu option line with selection indicator.
  */
 function formatOptionLine(item: string | number, isSelected: boolean): string {
-  if (isSelected) return ` \x1b[36m❯ ${item}\x1b[0m\n`;
-
-  return `    ${item}\n`;
+  return isSelected ? ` \x1b[36m❯ ${item}\x1b[0m\n` : `    ${item}\n`;
 }
 
 /**
@@ -223,8 +221,8 @@ function resolvePromptStreams(options: SelectPromptOptions): {
   output: NodeJS.WritableStream;
 } {
   return {
-    input: options.input || process.stdin,
-    output: options.output || process.stdout,
+    input: options.input ?? process.stdin,
+    output: options.output ?? process.stdout,
   };
 }
 
@@ -232,13 +230,11 @@ function resolvePromptStreams(options: SelectPromptOptions): {
  * Resolves current selected item or throws if filtered list is empty.
  */
 function resolveSelectedItem(state: PromptState): string | number {
-  const chosen = state.filtered[state.selectedIndex];
-
-  if (chosen === undefined) {
+  if (state.filtered.length === 0) {
     throw new Error(`No option matching filter: '${state.filter}'`);
   }
 
-  return chosen;
+  return state.filtered[state.selectedIndex];
 }
 
 /**

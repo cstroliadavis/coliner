@@ -46,9 +46,7 @@ function detectHelpSubcommand(args: string[]): HelpDetection | null {
  * Detects if help should be displayed when no arguments are supplied.
  */
 function isHelpDueToNoArgs(args: string[], commands: CommandConfig[]): boolean {
-  if (args.length > 0) return false;
-
-  return !commands.some((c) => c.isDefault);
+  return args.length === 0 && !commands.some((c) => c.isDefault);
 }
 
 /**

@@ -15,11 +15,7 @@ function advanceToken(res: TokenParseResult, state: ScanState): void {
  * Validates that all single characters represent valid flag configurations.
  */
 function areAllFlagsValid(chars: string[], flags: Map<string, ParamConfig>): boolean {
-  for (const char of chars) {
-    if (!flags.has(char)) return false;
-  }
-
-  return true;
+  return chars.every((char) => flags.has(char));
 }
 
 /**
@@ -101,9 +97,7 @@ function buildTokenContext(state: ScanState): TokenContext {
  * Checks and parses multiple chained flag characters in single-dash token.
  */
 function checkChainedFlags(content: string, ctx: TokenContext): boolean {
-  if (content.length <= 1) return false;
-
-  return parseChainedFlags(ctx.token, ctx.lookups.flags, ctx.assigned);
+  return content.length > 1 && parseChainedFlags(ctx.token, ctx.lookups.flags, ctx.assigned);
 }
 
 /**
@@ -125,7 +119,7 @@ function checkNegator(content: string, ctx: TokenContext): boolean {
  * Looks up parameter by exact name or alias.
  */
 function findParam(key: string, lookups: ParamLookups): ParamConfig | undefined {
-  return lookups.names.get(key) || lookups.aliases.get(key);
+  return lookups.names.get(key) ?? lookups.aliases.get(key);
 }
 
 /**
@@ -169,9 +163,7 @@ function handleDoubleDashDelimiter(state: ScanState): boolean {
  * Validates whether token represents an option rather than a negative number.
  */
 function isSingleDashOption(token: string): boolean {
-  if (!token.startsWith('-') || token.length <= 1) return false;
-
-  return !/^-[0-9]/.test(token);
+  return token.startsWith('-') && token.length > 1 && !/^-[0-9]/.test(token);
 }
 
 /**

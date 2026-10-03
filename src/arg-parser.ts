@@ -17,9 +17,7 @@ function createEmptyLookups(): ParamLookups {
 /**
  * Normalizes alias parameter into an array of string tokens.
  */
-function getAliases(alias?: string | string[]): string[] {
-  if (!alias) return [];
-
+function getAliases(alias: string | string[] = []): string[] {
   return Array.isArray(alias) ? alias : [alias];
 }
 
@@ -167,7 +165,7 @@ export function createArgParser(coercer = createParamCoercer()) {
     rawArgs: string[],
     options?: { cwd?: string; stdinContent?: string },
   ): Record<string, unknown> {
-    const params = command.params || [];
+    const params = command.params ?? [];
     const lookups = buildParamLookups(params);
     const assigned = new Map<ParamConfig, unknown>();
     const positionals = scanTokens(rawArgs, lookups, assigned);

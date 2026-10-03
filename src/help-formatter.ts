@@ -4,16 +4,14 @@ import type { CliConfig, CommandConfig, ParamConfig } from './types.js';
  * Formats a single or multi-character alias token with hyphens.
  */
 function formatAliasFlag(alias: string): string {
-  if (alias.length === 1) return `-${alias}`;
-
-  return `--${alias}`;
+  return alias.length === 1 ? `-${alias}` : `--${alias}`;
 }
 
 /**
  * Formats CLI program name and version banner string.
  */
 function formatCliTitle(name?: string, version?: string): string {
-  const cliName = name || 'coliner';
+  const cliName = name ?? 'coliner';
   const ver = version ? ` v${version}` : '';
 
   return `${cliName}${ver}`;
@@ -70,7 +68,7 @@ function formatCommandRow(cmd: CommandConfig): string {
  */
 function formatGeneralHeader(config: CliConfig): string[] {
   const title = formatCliTitle(config.name, config.version);
-  const cliName = config.name || 'coliner';
+  const cliName = config.name ?? 'coliner';
   const lines = [title];
 
   if (config.description) {
@@ -134,17 +132,13 @@ function getParamFlags(param: ParamConfig): string[] {
  * Returns value type placeholder string for non-flag parameters.
  */
 function getValuePlaceholder(type: string): string {
-  if (type === 'flag') return '';
-
-  return ` <${type}>`;
+  return type === 'flag' ? '' : ` <${type}>`;
 }
 
 /**
  * Normalizes alias configuration into an array of string aliases.
  */
-function normalizeAliases(alias?: string | string[]): string[] {
-  if (!alias) return [];
-
+function normalizeAliases(alias: string | string[] = []): string[] {
   return Array.isArray(alias) ? alias : [alias];
 }
 
@@ -162,7 +156,7 @@ function normalizeAliases(alias?: string | string[]): string[] {
  */
 export function createHelpFormatter(config: CliConfig) {
   const _ = {
-    cliName: config.name || 'coliner',
+    cliName: config.name ?? 'coliner',
     config,
   };
 

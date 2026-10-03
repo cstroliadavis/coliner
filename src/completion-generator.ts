@@ -15,20 +15,14 @@ function formatCompletionItem(item: CompletionItem, shell?: CompletionShell): st
  * Formats completion item for Fish with tab description separator.
  */
 function formatFishItem(item: CompletionItem): string {
-  if (!item.description) return item.value;
-
-  return `${item.value}\t${item.description}`;
+  return item.description ? `${item.value}\t${item.description}` : item.value;
 }
 
 /**
  * Formats completion item for Zsh with colon description separator.
  */
 function formatZshItem(item: CompletionItem): string {
-  if (!item.description) return item.value;
-
-  const cleanDesc = item.description.replace(/:/g, ' ');
-
-  return `${item.value}:${cleanDesc}`;
+  return item.description ? `${item.value}:${item.description.replace(/:/g, ' ')}` : item.value;
 }
 
 /**
@@ -137,9 +131,5 @@ export function formatCompletionsForShell(
  * ```
  */
 export function generateCompletionScript(shell: CompletionShell, cliName: string): string {
-  const generator = SCRIPT_GENERATORS[shell];
-
-  if (!generator) return generateBashCompletion(cliName);
-
-  return generator(cliName);
+  return SCRIPT_GENERATORS[shell](cliName);
 }

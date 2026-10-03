@@ -62,7 +62,7 @@ function handleCompleteSubcommand(args: string[], config: CliConfig): ParsedComm
  * Displays completion help documentation.
  */
 function handleHelpSubcommand(args: string[], config: CliConfig): ParsedCommandResult {
-  const cliName = config.name || 'coliner';
+  const cliName = config.name ?? 'coliner';
   const helpText = renderCompletionHelp(cliName);
 
   console.log(helpText);
@@ -78,7 +78,7 @@ function handleScriptSubcommand(
   args: string[],
   config: CliConfig,
 ): ParsedCommandResult {
-  const cliName = config.name || 'coliner';
+  const cliName = config.name ?? 'coliner';
   const script = generateCompletionScript(shell, cliName);
 
   console.log(script);
@@ -90,9 +90,7 @@ function handleScriptSubcommand(
  * Checks whether token represents a supported completion shell name.
  */
 function isShellToken(token?: string): token is CompletionShell {
-  if (!token) return false;
-
-  return VALID_SHELLS.has(token);
+  return Boolean(token && VALID_SHELLS.has(token));
 }
 
 /**
@@ -144,7 +142,5 @@ export function handleCompletionCommand(args: string[], config: CliConfig): Pars
  * ```
  */
 export function isCompletionCommand(args: string[], commands: CommandConfig[]): boolean {
-  if (args.length === 0 || args[0] !== 'completion') return false;
-
-  return !commands.some((c) => c.name === 'completion');
+  return args[0] === 'completion' && !commands.some((c) => c.name === 'completion');
 }

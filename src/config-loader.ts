@@ -31,7 +31,7 @@ const DEFAULT_CONFIG_FILENAMES = [
 /**
  * Asserts configuration structure includes a valid commands array.
  */
-function assertValidCommandsArray(config: CliConfig): void {
+function assertValidCommandsArray(config: CliConfig | null | undefined): void {
   if (!config || !Array.isArray(config.commands)) {
     throw new Error("Configuration must have a 'commands' array");
   }
@@ -103,11 +103,9 @@ function registerCommandParam(param: ParamConfig, commandName: string, seen: Set
  * Locates an existing configuration file among standard default candidates.
  */
 function resolveConfigFile(customPath?: string, cwd?: string): string {
-  const activeCwd = cwd || process.cwd();
+  const activeCwd = cwd ?? process.cwd();
 
-  if (customPath) return resolveCustomPath(customPath, activeCwd);
-
-  return resolveDefaultConfig(activeCwd);
+  return customPath ? resolveCustomPath(customPath, activeCwd) : resolveDefaultConfig(activeCwd);
 }
 
 /**
@@ -197,7 +195,7 @@ function validateParamConfig(param: ParamConfig, commandName: string): void {
  * Validates parameter data type against supported types.
  */
 function validateParamType(param: ParamConfig, commandName: string): void {
-  if (!param.type || !VALID_PARAM_TYPES.includes(param.type)) {
+  if (!VALID_PARAM_TYPES.includes(param.type)) {
     throw new Error(
       `Parameter '${param.name}' in command '${commandName}' has invalid type: '${param.type}'. ` +
         `Expected one of: ${VALID_PARAM_TYPES.join(', ')}`,
@@ -239,7 +237,7 @@ export function createConfigLoader(defaultCwd: string = process.cwd()) {
    * Loads configuration from a file path or standard candidate.
    */
   function loadFromFile(filePath?: string, customCwd?: string): CliConfig {
-    const targetCwd = customCwd || _.cwd;
+    const targetCwd = customCwd ?? _.cwd;
     const resolvedPath = resolveConfigFile(filePath, targetCwd);
     const content = fs.readFileSync(resolvedPath, 'utf-8');
 

@@ -13,7 +13,7 @@ const GLOBAL_COMPLETIONS: CompletionItem[] = [
 function collectCommandOptions(cmd: CommandConfig): CompletionItem[] {
   const items: CompletionItem[] = [];
 
-  for (const param of cmd.params || []) {
+  for (const param of cmd.params ?? []) {
     items.push(...paramFlagsToCompletions(param));
   }
 
@@ -25,9 +25,7 @@ function collectCommandOptions(cmd: CommandConfig): CompletionItem[] {
 /**
  * Gathers positional parameter select completions for a command.
  */
-function collectPositionalSelects(params: ParamConfig[] | undefined): CompletionItem[] {
-  if (!params) return [];
-
+function collectPositionalSelects(params: ParamConfig[] = []): CompletionItem[] {
   return params.filter((p) => p.type === 'select').flatMap(selectItemsToCompletions);
 }
 
@@ -36,7 +34,7 @@ function collectPositionalSelects(params: ParamConfig[] | undefined): Completion
  */
 function commandToCompletion(cmd: CommandConfig): CompletionItem {
   return {
-    description: cmd.description || `Execute ${cmd.name}`,
+    description: cmd.description ?? `Execute ${cmd.name}`,
     value: cmd.name,
   };
 }
@@ -56,24 +54,20 @@ function filterCompletions(items: CompletionItem[], prefix: string): CompletionI
  * Safely extracts the trailing argument token or defaults to empty string.
  */
 function getLastArg(rawArgs: string[]): string {
-  if (rawArgs.length === 0) return '';
-
-  return rawArgs[rawArgs.length - 1];
+  return rawArgs.length === 0 ? '' : rawArgs[rawArgs.length - 1];
 }
 
 /**
  * Checks whether parameter is defined as select type.
  */
 function isSelectParam(param?: ParamConfig): boolean {
-  return Boolean(param && param.type === 'select');
+  return param?.type === 'select';
 }
 
 /**
  * Checks if parameter alias matches stripped flag token.
  */
-function matchAlias(alias: string | string[] | undefined, stripped: string): boolean {
-  if (!alias) return false;
-
+function matchAlias(alias: string | string[] = [], stripped: string): boolean {
   return Array.isArray(alias) ? alias.includes(stripped) : alias === stripped;
 }
 
@@ -92,7 +86,7 @@ function matchParamByFlag(token: string, params: ParamConfig[]): ParamConfig | u
 function paramFlagsToCompletions(param: ParamConfig): CompletionItem[] {
   const items: CompletionItem[] = [
     {
-      description: param.description || `Option --${param.name}`,
+      description: param.description ?? `Option --${param.name}`,
       value: `--${param.name}`,
     },
   ];
@@ -153,23 +147,21 @@ function resolveSubcommandCompletions(cmd: CommandConfig, rawArgs: string[]): Co
  * Resolves completions for parameter values if previous token was an option flag.
  */
 function resolveValueCompletion(prevToken: string, cmd: CommandConfig): CompletionItem[] | null {
-  const param = matchParamByFlag(prevToken, cmd.params || []);
+  const param = matchParamByFlag(prevToken, cmd.params ?? []);
 
-  if (isSelectParam(param)) return selectItemsToCompletions(param as ParamConfig);
-
-  return null;
+  return isSelectParam(param) ? selectItemsToCompletions(param as ParamConfig) : null;
 }
 
 /**
  * Converts select parameter items into completion suggestions.
  */
 function selectItemsToCompletions(param: ParamConfig): CompletionItem[] {
-  if (!param.items) return [];
-
-  return param.items.map((item) => ({
-    description: `Choice for ${param.name}`,
-    value: String(item),
-  }));
+  return param.items
+    ? param.items.map((item) => ({
+        description: `Choice for ${param.name}`,
+        value: String(item),
+      }))
+    : [];
 }
 
 /**

@@ -86,9 +86,7 @@ async function executeWorkflow(
  * Extracts optional custom working directory from options argument.
  */
 function extractOptionCwd(options: CliConfig | ColinerOptions | string): string | undefined {
-  if (typeof options === 'object' && 'cwd' in options) return options.cwd;
-
-  return undefined;
+  return typeof options === 'object' && 'cwd' in options ? options.cwd : undefined;
 }
 
 /**
@@ -175,7 +173,7 @@ function registerEventHandler(
   handler: EventHandler,
   handlersMap: Map<string, EventHandler[]>,
 ): void {
-  const handlers = handlersMap.get(eventName) || [];
+  const handlers = handlersMap.get(eventName) ?? [];
 
   handlers.push(handler);
   handlersMap.set(eventName, handlers);
@@ -185,9 +183,7 @@ function registerEventHandler(
  * Resolves argument array with fallback to process.argv slice.
  */
 function resolveArgList(args?: string[]): string[] {
-  if (args) return args;
-
-  return process.argv.slice(2);
+  return args ?? process.argv.slice(2);
 }
 
 /**
@@ -215,9 +211,7 @@ function resolveColinerConfig(
 function resolveColinerCwd(initOptions: CliConfig | ColinerOptions | string): string {
   const customCwd = extractOptionCwd(initOptions);
 
-  if (customCwd) return customCwd;
-
-  return process.cwd();
+  return customCwd ?? process.cwd();
 }
 
 /**
@@ -289,7 +283,7 @@ export function createColiner(
   const instance: ColinerInstance = {
     execute: (opts) => executeWorkflow(_, opts),
     generateCompletionScript: (shell) =>
-      generateCompletionScript(shell, _.config.name || 'coliner'),
+      generateCompletionScript(shell, _.config.name ?? 'coliner'),
     getCommand: (name) => _.config.commands.find((c) => c.name === name),
     getCompletions: (args) => resolveCompletions(_.config, args),
     getConfig: () => _.config,

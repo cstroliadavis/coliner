@@ -40,7 +40,7 @@ describe('select-prompt', () => {
       paramName: 'test',
     });
 
-    expect(promise).rejects.toThrow('non-interactive terminal');
+    await expect(promise).rejects.toThrow('non-interactive terminal');
   });
 
   it('selects first item on immediate Enter keypress', async () => {
@@ -133,6 +133,6 @@ describe('select-prompt', () => {
 
     input.emit('data', '\u0003');
 
-    expect(promise).rejects.toThrow('User cancelled prompt');
+    await expect(promise).rejects.toThrow('User cancelled prompt');
   });
 });

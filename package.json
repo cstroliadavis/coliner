@@ -12,15 +12,15 @@
   "scripts": {
     "build": "tsc",
     "docs": "typedoc",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "lint": "eslint .",
-    "lint:fix": "eslint --fix .",
+    "format": "bun fmt",
+    "format:check": "bun fmt --check",
+    "lint": "bun lint",
+    "lint:fix": "bun lint --fix",
     "start": "bun run ./bin/coliner.ts",
     "test": "bun test",
     "test:e2e": "bun test test/e2e.test.ts",
     "test:watch": "bun test --watch",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "bun check"
   },
   "keywords": [
     "cli",
@@ -37,14 +37,10 @@
     "yaml": "^2.7.0"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
     "@stylistic/eslint-plugin": "^5.10.0",
     "@types/bun": "^1.2.4",
-    "eslint": "^10.11.0",
-    "eslint-config-prettier": "^10.1.8",
-    "prettier": "^3.9.9",
+    "eslint": "^10.12.0",
     "typedoc": "^0.28.20",
-    "typescript": "^5.8.2",
-    "typescript-eslint": "^8.71.0"
+    "typescript": "^5.8.2"
   }
 }
